@@ -1,0 +1,136 @@
+// Portfolio data — Guilherme Bertanha
+
+const PORTFOLIO_DATA = {
+  name: { first: 'Guilherme', last: 'Bertanha' },
+  initials: 'GB',
+  role: 'Engenheiro Mecatrônico',
+  tagline: 'Hardware, firmware e IA — do sensor à decisão.',
+  bio: 'Estudante de Engenharia Mecatrônica na UFU. Trabalho na interseção entre sistemas embarcados, robótica e inteligência artificial — projetando firmware para dispositivos industriais, software para robôs humanoides e agentes autônomos que conectam LLMs ao mundo físico.',
+  location: 'Uberlândia, MG, Brasil',
+  timezone: 'GMT-3',
+  status: { kind: 'available', label: 'disponível para colaborações' },
+  now: [
+    { label: 'Liderando', value: 'EDROM — robô Áurea rumo à RoboCup 2025' },
+    { label: 'Construindo', value: 'firmware do gateway Frotall FRITG01LTE' },
+    { label: 'Estudando', value: 'controle ótimo, ROS2 e agentes com LLMs' },
+  ],
+  socials: {
+    github: 'https://github.com/guibertanha',
+    linkedin: 'https://linkedin.com/in/guibertanha',
+    email: 'mailto:guilherme.bertanha@ufu.br',
+  },
+  stats: [
+    { value: '4+', label: 'anos em embarcado' },
+    { value: '30+', label: 'releases em produção' },
+    { value: '6', label: 'protocolos integrados' },
+    { value: '2025', label: 'RoboCup / CBR' },
+  ],
+  experience: [
+    {
+      role: 'Presidente & Engenheiro de Software',
+      company: 'EDROM',
+      companyNote: 'Equipe de Robótica da UFU',
+      period: '2023 — presente',
+      location: 'Uberlândia, MG',
+      description: [
+        'Liderança multidisciplinar de equipe de robótica humanoide para a RoboCup / CBR 2025.',
+        'Desenvolvimento de controle de servos, visão computacional e integração de sensores para o robô Áurea.',
+        'Arquitetura do sistema em ROS2 Humble com simulação no Webots e deploy via Docker.',
+      ],
+      tags: ['C++', 'ROS2', 'Python', 'Docker', 'Webots', 'Visão Computacional'],
+    },
+    {
+      role: 'Engenheiro de P&D — Firmware Embarcado',
+      company: 'Terasite Tecnologia',
+      period: '2024 — presente',
+      location: 'Uberlândia, MG',
+      description: [
+        'Desenvolvimento do firmware do gateway IoT industrial Frotall (FRITG01LTE) para máquinas pesadas.',
+        'Implementação de comunicação mesh BLE com segurança HMAC, criptografia AES dinâmica e autenticação por token.',
+        'Conectividade multi-protocolo: LTE/GPRS, Wi-Fi, ESP-NOW, CAN bus e OTA updates.',
+        'Validação de antenas RF com bancada automatizada, pipeline Python e relatórios HTML automáticos.',
+      ],
+      tags: ['C++', 'ESP32', 'FreeRTOS', 'BLE', 'CAN Bus', 'LTE', 'Python', 'ESP-NOW'],
+    },
+    {
+      role: 'Desenvolvedor de Agentes de IA',
+      company: 'Projetos Autônomos',
+      period: '2024 — presente',
+      location: 'Remoto',
+      description: [
+        'Criação de agentes autônomos e ferramentas de automação utilizando Claude API e OpenAI.',
+        'Integração de LLMs com sistemas de hardware e pipelines de dados industriais.',
+      ],
+      tags: ['Claude API', 'OpenAI', 'Python', 'TypeScript', 'Automação'],
+    },
+  ],
+  projects: [
+    {
+      name: 'Frotall Firmware (FRITG01LTE)',
+      year: '2024',
+      type: 'Trabalho',
+      description: 'Gateway IoT industrial para máquinas pesadas. Mesh BLE, CAN bus, LTE/GPRS, AES dinâmico, horômetro virtual, OTA via rede mesh. Mais de 30 releases em produção.',
+      tags: ['C++', 'ESP32', 'FreeRTOS', 'BLE', 'CAN Bus', 'LTE'],
+      highlight: true,
+    },
+    {
+      name: 'EDROM — Robô Áurea',
+      year: '2023–25',
+      type: 'Pesquisa',
+      description: 'Sistema completo de robô humanoide para a RoboCup/CBR 2025. Controle cinemático de servos, visão computacional, localização e máquina de estados comportamental em ROS2.',
+      tags: ['C++', 'ROS2', 'Python', 'Docker', 'Webots'],
+      url: 'https://github.com/edromufu/edrom_main',
+      highlight: true,
+    },
+    {
+      name: 'Validação de Antenas RF',
+      year: '2024',
+      type: 'Trabalho',
+      description: 'Firmware de bancada para teste de 5 antenas externas. State machine com 3 perfis, scoring normalizado e relatório HTML automático.',
+      tags: ['C++', 'Python', 'HTML', 'Análise de Dados'],
+      url: 'https://github.com/guibertanha/estagio-terasite',
+    },
+    {
+      name: 'RF Field Analysis',
+      year: '2024',
+      type: 'Open Source',
+      description: 'Pipeline de análise exploratória de dados de campo para validação de antenas Wi-Fi em condições reais.',
+      tags: ['Python', 'Jupyter', 'Pandas', 'EDA'],
+      url: 'https://github.com/guibertanha/rf-field-analysis',
+    },
+    {
+      name: 'firmware-e-poeira',
+      year: '2025',
+      type: 'Pessoal',
+      description: 'Jogo de simulação browser com React 19, TypeScript, Zustand e Framer Motion. Experiência narrativa sobre engenharia embarcada.',
+      tags: ['React 19', 'TypeScript', 'Zustand', 'Framer Motion'],
+      url: 'https://github.com/guibertanha/firmware-e-poeira',
+    },
+    {
+      name: 'Data Science Study',
+      year: '2024',
+      type: 'Estudo',
+      description: 'Pipeline de ciência de dados: limpeza, EDA e modelos preditivos de regressão.',
+      tags: ['Python', 'Jupyter', 'Scikit-learn', 'EDA'],
+      url: 'https://github.com/guibertanha/data-science-study',
+    },
+  ],
+  skills: [
+    { label: 'Embarcado & IoT', skills: ['C++', 'C', 'ESP32', 'Arduino', 'FreeRTOS', 'BLE', 'ESP-NOW', 'CAN Bus', 'LTE/GPRS'] },
+    { label: 'Robótica', skills: ['ROS2 Humble', 'Docker', 'Webots', 'Visão Computacional', 'Cinemática'] },
+    { label: 'Software & Dados', skills: ['Python', 'MATLAB', 'Jupyter', 'Pandas', 'Scikit-learn', 'Git', 'Linux'] },
+    { label: 'Web & Interfaces', skills: ['TypeScript', 'React', 'Tailwind CSS', 'Vite', 'Zustand', 'Framer Motion'] },
+    { label: 'IA & Automação', skills: ['Claude API', 'OpenAI API', 'Agentes Autônomos'] },
+    { label: 'CAD & Ferramentas', skills: ['SolidWorks', 'PlatformIO', 'Git', 'VSCode'] },
+  ],
+  education: [
+    {
+      degree: 'Engenharia Mecatrônica',
+      institution: 'Universidade Federal de Uberlândia (UFU)',
+      period: '2021 — presente',
+      detail: 'Foco em sistemas embarcados, controle, robótica e processamento de sinais. Membro fundador e atual presidente da EDROM.',
+    },
+  ],
+};
+
+window.PORTFOLIO_DATA = PORTFOLIO_DATA;
