@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FRITG-CONSOLE · Guilherme Bertanha</title>
-  <meta name="description" content="Firmware R&D Engineer — ESP32, FreeRTOS, ROS2, BLE mesh, CAN FD. EDROM · Terasite Tecnologia · UFU." />
+  <meta name="description" content="Eng. Mecatrônica UFU · EDROM presidente · Terasite estagiário R&D · ESP32 · ROS2 · Python" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -963,7 +963,21 @@
     }
     .footer__sig { color: var(--fg-dim); }
     .footer__sig b { color: var(--accent); }
-  </style>
+  
+    .lang-toggle { display: flex; border: 1px solid var(--line-strong); overflow: hidden; margin-left: 8px; }
+    .lang-toggle button { padding: 3px 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-dim); background: transparent; border: none; cursor: pointer; transition: all 0.15s; border-right: 1px solid var(--line-strong); }
+    .lang-toggle button:last-child { border-right: none; }
+    .lang-toggle button.is-active { background: var(--accent); color: #050a0e; font-weight: 700; }
+    .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 720px) { .edu-grid { grid-template-columns: 1fr; } }
+    .edu-card { border: 1px solid var(--line-strong); background: var(--bg-elev); overflow: hidden; }
+    .edu-card__head { padding: 8px 16px; background: var(--bg-card); border-bottom: 1px solid var(--line-strong); font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); }
+    .edu-card__body { padding: 16px; }
+    .edu-card__title { font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+    .edu-card__inst { font-family: var(--mono); font-size: 11px; color: var(--fg-dim); margin-bottom: 10px; letter-spacing: 0.04em; }
+    .edu-card__detail { font-family: var(--mono); font-size: 10.5px; color: var(--fg-faint); display: flex; flex-direction: column; gap: 4px; }
+    .edu-card__detail span { display: flex; gap: 8px; }
+    .edu-card__detail span b { color: var(--fg-dim); min-width: 80px; }</style>
 </head>
 <body>
   <div id="root"></div>
@@ -971,225 +985,362 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
   <script type="text/babel" data-presets="react">
-// ============================================================
-// GB.CONSOLE · Portfolio Guilherme Bertanha (v4 — versão acessível)
-// Mesmo visual da v3, linguagem para qualquer pessoa entender
-// ============================================================
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-// ============================================================
-// CONTENT
-// ============================================================
+const META = {
+  name: 'Guilherme Bertanha',
+  handle: '@guibertanha',
+  location: 'Uberlândia · MG · BR',
+  email: 'guilhermebertanha0@gmail.com',
+  github: 'https://github.com/guibertanha',
+  linkedin: 'https://linkedin.com/in/guilhermebertanhaconstante',
+};
+
 const CONTENT = {
-  meta: {
-    name: 'Guilherme Bertanha',
-    handle: '@guibertanha',
-    location: 'Uberlândia · MG · BR',
-    email: 'guilhermebertanha0@gmail.com',
-    github: 'https://github.com/guibertanha',
-    linkedin: 'https://linkedin.com/in/guilhermebertanhaconstante',
+  pt: {
+    nav: ['INIT', '/proc/gb', 'reg_dump', 'ls -edu', 'ls -missions', 'git_log', 'ping'],
+    navIds: ['boot', 'about', 'stack', 'education', 'projects', 'experience', 'contact'],
+    boot: {
+      greet: 'SISTEMA ONLINE · PORTFOLIO 2026',
+      role: 'Estudante de Eng. Mecatrônica na UFU. Presidente da EDROM (3° lugar CBR 2025 · CBR 2026 em preparação). Estagiário de P&D na Terasite Tecnologia — validação RF e firmware embarcado para gateway IoT industrial.',
+      meta: [['LOCAL', 'Uberlândia · MG'], ['STATUS', 'Disponível · 2026'], ['STACK', 'ESP32 · ROS2 · Python']],
+      cta: ['./missions →', 'ping guilherme →'],
+    },
+    about: {
+      title: 'Sobre', cmd: 'cat /proc/gb/operator.profile',
+      dumpTitle: 'cat /proc/gb/operator.profile',
+      profile: [
+        ['operator',      'Guilherme Bertanha <guibertanha>'],
+        ['affiliation',   'UFU · Eng. Mecatrônica · 8° período · formatura Jul/2027'],
+        ['role.primary',  'Estagiário P&D · Terasite Tecnologia (Fev–Jul 2026)'],
+        ['role.secondary','Presidente & Software Lead · EDROM (Dez/2024 → presente)'],
+        ['coordinates',   '-18.9186° S, -48.2772° W · UTC-3 (BRT)'],
+        ['architecture',  'bare-metal C++ → FreeRTOS → ROS2 → LLM agents'],
+        ['open_to',       'embedded collab · robotics R&D · AI systems'],
+      ],
+      bio: [
+        'Trabalho em sistemas que cruzam camadas — do sinal de RF no hardware ao agente de IA que interpreta os dados. Do sensor à decisão.',
+        'Na Terasite desenvolvo um sistema de validação de antenas para o gateway IoT industrial FRITG01LTE — bancada em C++/Arduino, pipeline Python e relatórios HTML automáticos. Também contribuo com o firmware embarcado do produto.',
+        'No EDROM lidero como presidente um time de ~30 estudantes construindo o robô humanoide Áurea. 3° lugar nacional na CBR 2025. Em 2026 vamos à CBR em João Pessoa buscando o primeiro lugar.',
+      ],
+      counters: [
+        ['8°', 'período · mecatrônica'],
+        ['3°', 'lugar CBR 2025 · Áurea'],
+        ['2026', 'CBR · João Pessoa'],
+        ['5', 'linguagens ativas'],
+      ],
+    },
+    stack: {
+      title: 'Stack', cmd: 'readelf --STACK_REGISTER',
+      groups: [
+        { id: 'REG[00]', label: 'Bare-Metal & RTOS', hint: 'interrupt-driven · field-hardened', items: [
+          ['C++ / C',                 95, 'ISR · DMA · state machine'],
+          ['ESP32 + FreeRTOS',        85, 'tasks · queues · semaphores'],
+          ['Arduino / PlatformIO',    80, 'sketches · upload · debug'],
+          ['BLE 5.0 + ESP-NOW',       65, 'GATT · mesh · TTL routing'],
+          ['CAN FD',                  55, 'ISO 11898 · frame parsing'],
+        ]},
+        { id: 'REG[01]', label: 'Robotics Middleware', hint: 'ROS2 · sim-validated', items: [
+          ['ROS2 Humble (rclcpp)',    80, 'DDS QoS · lifecycle nodes'],
+          ['Docker + Compose',        75, 'isolated workspace · CI'],
+          ['Webots sim',              70, 'physics · sensor emulation'],
+          ['OpenCV + YOLOv8',         65, 'visão comp · TF2 transforms'],
+        ]},
+        { id: 'REG[02]', label: 'Dados & Sinais', hint: 'EDA · RF · regressão', items: [
+          ['Python',                  85, 'análise · pipeline · scripts'],
+          ['Pandas + NumPy + SciPy',  80, 'EDA · time-series · FFT'],
+          ['Matplotlib / Plotly',     75, 'visualização · relatórios HTML'],
+          ['Scikit-learn',            60, 'regressão · k-fold · RMSE'],
+          ['SA6 35–6200 MHz',         55, 'analisador de espectro'],
+        ]},
+        { id: 'REG[03]', label: 'Web & IA', hint: 'agents · TypeScript', items: [
+          ['Claude API',              80, 'function tools · agents'],
+          ['TypeScript + React',      70, 'Zustand · Vite · Tailwind'],
+          ['OpenAI API',              65, 'LLM · embeddings'],
+          ['PCB (KiCad)',             45, 'contribuição · conector automotivo'],
+        ]},
+      ],
+    },
+    education: {
+      title: 'Educação', cmd: 'ls -la ./education/',
+      items: [
+        { type: 'GRADUAÇÃO', title: 'Engenharia Mecatrônica', inst: 'Universidade Federal de Uberlândia (UFU)', period: '2023 → Jul 2027',
+          details: [['semestre', '8° período (de 10)'], ['campus', 'Santa Mônica · Uberlândia MG'], ['foco', 'Embarcados · Robótica · Controle']] },
+        { type: 'MONITORIA', title: 'Introdução à Eng. Mecatrônica', inst: 'Universidade Federal de Uberlândia (UFU)', period: 'Ago 2023',
+          details: [['disciplina', 'Introdução à Eng. Mecatrônica'], ['período', '2° semestre de 2023'], ['função', 'Monitor voluntário']] },
+      ],
+    },
+    missions: {
+      title: 'Projetos', cmd: 'ls -la ./missions/',
+      filters: ['Todos', 'Robótica', 'Embedded', 'Dados'],
+      catMap: { 'Todos': null, 'Robótica': 'Robótica', 'Embedded': 'Embedded', 'Dados': 'Dados' },
+      hint: 'clique para expandir',
+      items: [
+        { id: 'M-001', perms: 'drwxr-x', status: 'ongoing', cat: 'Robótica',
+          title: 'EDROM — Robô Áurea · RoboCup',
+          role: 'Presidente & Software Lead · EDROM / UFU',
+          summary: 'Robô humanoide bípede para RoboCup Humanoid Soccer League. 3° lugar nacional na CBR 2025. CBR 2026 em preparação (João Pessoa, PB).',
+          desc: 'Lidero ~30 estudantes nos subsistemas de mecânica, eletrônica e software. Software: behavior FSM para jogar futebol autonomamente, controle cinemático em ROS2, pipeline YOLOv8 para visão computacional e sensor fusion com filtro Madgwick. Workspace em Docker + simulação em Webots antes do deploy físico.',
+          chips: ['C++', 'ROS2 Humble', 'Python', 'OpenCV', 'YOLOv8', 'Docker', 'Webots'],
+          side: [['resultado', '3° lugar CBR 2025'], ['time', '~30 estudantes'], ['próximo', 'CBR 2026 · JP-PB'], ['middleware', 'ROS2 + DDS QoS']],
+          link: 'https://github.com/edromufu/edrom_main' },
+        { id: 'M-002', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
+          title: 'Validação de Antenas RF — Terasite',
+          role: 'Estagiário P&D · Terasite Tecnologia',
+          summary: 'Sistema de validação de antenas Wi-Fi externas para o gateway IoT industrial FRITG01LTE. Bancada em C++/Arduino, análise em Python, relatório HTML automático.',
+          desc: 'O FRITG01LTE usa antena interna ESP32, mas o enclosure PA66 (IP54) degrada o sinal. Desenvolvi a bancada: firmware Arduino (logging autônomo RSSI/ping), 3 perfis (BURN, WALK, CLOCK), pipeline Python para parsear logs e gerar relatório HTML com Plotly. 6 antenas em 2 fases. Fase 2 em andamento: A4 (SMD rígida) vs A5 (Molex T-Bar FPC).',
+          chips: ['C++', 'Arduino', 'Python', 'Plotly', 'SA6 35-6200MHz'],
+          side: [['antenas', '6 avaliadas (A0–A5)'], ['fases', '2 (RSSI + Ping)'], ['instrumento', 'SA6 · 35–6200 MHz'], ['status', 'A4 vs A5 · fase 2']],
+          link: 'https://github.com/guibertanha/estagio-terasite' },
+        { id: 'M-003', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
+          title: 'Frotall FRITG01LTE — Contribuições Firmware',
+          role: 'Estagiário P&D · Terasite Tecnologia (Fev 2026 →)',
+          summary: 'Gateway IoT industrial para telemetria de máquinas pesadas. ESP32 + SIM7600G LTE, BLE mesh, CAN FD, AES-256-GCM. Contribuidor desde Fev/2026.',
+          desc: 'O FRITG01LTE é o produto principal da Terasite: telemetria de frota em máquinas pesadas de linha amarela. Firmware C++/FreeRTOS mantido pela equipe (responsável: Neilton Morais). Como estagiário contribuo com ajustes de firmware para suporte à bancada de testes e modificação do conector automotivo Aptiv na PCB (KiCad).',
+          chips: ['C++', 'ESP32', 'FreeRTOS', 'KiCad (PCB)', 'BLE', 'CAN FD'],
+          side: [['hw', 'ESP32 + SIM7600G + LSM6DS3'], ['enclosure', 'PA66 · IP54 · 12/24V'], ['fw_ver', 'v3.15.0 (Mar/2026)'], ['papel', 'contribuidor']],
+          link: null },
+        { id: 'M-004', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+          title: 'RF Field Analysis — EDA de Antenas Wi-Fi',
+          role: 'P&D · Terasite Tecnologia',
+          summary: 'Pipeline de EDA para análise das medições de RSSI e ping coletadas na bancada de validação do FRITG01LTE. Visualizações, ranking e relatório executivo.',
+          desc: 'Pipeline Python: parsing dos logs de RSSI e ping → limpeza e normalização → EDA (boxplots RSSI por antena, taxa de falha de ping, latência por ensaio) → ranking consolidado → relatório executivo com Matplotlib/Plotly. Base para a decisão de qual antena vai a campo.',
+          chips: ['Python', 'Pandas', 'NumPy', 'Matplotlib', 'Plotly'],
+          side: [['ensaios', '100+ CSVs analisados'], ['métricas', 'RSSI · PLR · latência'], ['output', 'relatório + ranking'], ['repo', 'github.com/guibertanha']],
+          link: 'https://github.com/guibertanha/rf-field-analysis' },
+        { id: 'M-005', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+          title: 'Data Science — Consultoria Walsoft Institute',
+          role: 'Estudo pessoal',
+          summary: 'Simulação de consultoria em Ciência de Dados para o Walsoft Computer Institute: EDA de dados de alunos de BI, modelos preditivos e recomendações estratégicas.',
+          desc: 'Dataset: 77 alunos de programa BI. Limpeza: imputação de nulos, padronização de categóricos. EDA: distribuição de idades, correlação horas de estudo × nota Python. Modelagem: Regressão Linear (baseline) vs Random Forest, split 80/20, métricas RMSE/MAE/R². Finding: forte correlação positiva entre esforço e resultado.',
+          chips: ['Python', 'Pandas', 'Scikit-learn', 'Matplotlib', 'Random Forest'],
+          side: [['dataset', '77 alunos · BI'], ['modelos', 'Linear Reg · RF'], ['split', '80/20 treino/teste'], ['finding', 'esforço ↔ nota: r² alto']],
+          link: 'https://github.com/guibertanha/data-science-study' },
+      ],
+    },
+    log: {
+      title: 'Trajetória', cmd: 'git log --author=GB --stat',
+      head: 'commits · autor=Guilherme Bertanha · ordem cronológica inversa',
+      items: [
+        { hash: 'HEAD', when: 'FEV 2026 → JUL 2026', current: true,
+          role: 'Estagiário P&D — Validação RF & Firmware',
+          where: { b: 'Terasite Tecnologia', rest: ' · Uberlândia MG' },
+          notes: [
+            'Desenvolvimento da bancada de validação de antenas Wi-Fi para o FRITG01LTE (firmware + Python + HTML).',
+            'Contribuições ao firmware FreeRTOS/C++ do gateway (compatibilidade com bancada de testes).',
+            'PCB: modificação do conector automotivo Aptiv em KiCad.',
+          ] },
+        { hash: 'a3f9c21', when: 'DEZ 2024 → presente', current: true,
+          role: 'Presidente & Software Lead',
+          where: { b: 'EDROM', rest: ' · Equipe de Robótica da UFU' },
+          notes: [
+            'Liderança de ~30 estudantes nos subsistemas de mecânica, eletrônica e software.',
+            '3° lugar nacional na CBR 2025 com o robô humanoide Áurea.',
+            'Behavior FSM, cinemática, pipeline YOLOv8 e sensor fusion (Madgwick) em ROS2.',
+            'Preparação para CBR 2026 (João Pessoa, PB) — meta: 1° lugar.',
+          ] },
+        { hash: 'b7d2e44', when: 'OUT 2023 → NOV 2024', current: false,
+          role: 'Membro & Diretor de Finanças',
+          where: { b: 'EDROM', rest: ' · Equipe de Robótica da UFU' },
+          notes: [
+            'Entrada na equipe como membro do subsistema de software.',
+            'Cargo de Diretor de Finanças: gestão orçamentária da equipe.',
+            'Desenvolvimento de software para o robô humanoide (ROS2, cinemática).',
+          ] },
+        { hash: 'c1a8f03', when: 'AGO 2023', current: false,
+          role: 'Monitor — Introdução à Eng. Mecatrônica',
+          where: { b: 'UFU', rest: ' · Universidade Federal de Uberlândia' },
+          notes: [
+            'Monitor voluntário no 2° semestre de 2023 (2° período do curso).',
+            'Suporte a alunos ingressantes na disciplina de Introdução à Eng. Mecatrônica.',
+          ] },
+      ],
+    },
+    contact: {
+      title: 'Contato', cmd: 'ping guilherme.bertanha -c 3',
+      pingLines: ['$ ping -c 3 guilherme.bertanha', 'PING guilherme.bertanha: 64 bytes · ttl=255', 'reply guaranteed · response < 24h'],
+      formTitle: 'send --message',
+      rows: [
+        { key: 'EMAIL',    val: 'guilhermebertanha0@gmail.com',    href: 'mailto:guilhermebertanha0@gmail.com', copy: true },
+        { key: 'GITHUB',   val: 'github.com/guibertanha',          href: 'https://github.com/guibertanha', copy: false },
+        { key: 'LINKEDIN', val: 'guilhermebertanhaconstante',       href: 'https://linkedin.com/in/guilhermebertanhaconstante', copy: false },
+        { key: 'LOCATION', val: 'Uberlândia · MG · BR · UTC-3',    href: null, copy: false },
+      ],
+    },
   },
-  about: {
-    profile: [
-      ['operator',      'Guilherme Bertanha <guibertanha>'],
-      ['affiliation',   'UFU · Eng. Mecatrônica · class of 2023'],
-      ['role.primary',  'Firmware R&D Engineer · Terasite Tecnologia'],
-      ['role.secondary','President & Software Lead · EDROM'],
-      ['coordinates',   '-18.9186 S, -48.2772 W · UTC-3 (BRT)'],
-      ['architecture',  'bare-metal C++ -> FreeRTOS -> ROS2 -> LLM agents'],
-      ['open_to',       'embedded collab · robotics R&D · AI systems'],
-    ],
-    bio: [
-      'Trabalho em sistemas que cruzam camadas — do ISR no chip ao agente de IA que interpreta os dados. Do sensor à decisão.',
-      'Na Terasite: firmware do FRITG01LTE, gateway IoT industrial com mesh BLE (NimBLE), ISO 11898 CAN FD, LTE cat-4, AES-256-GCM e HMAC-SHA256 challenge-response. 30+ releases em campo (IP54, ISO 7637-2).',
-      'No EDROM: locomoção bípede via IK analítica + Jacobian whole-body control, pipeline YOLOv8 em ROS2, sensor fusion a 200 Hz com filtro Madgwick. RoboCup CBR 2025.',
-    ],
-    counters: [
-      ['30+',  'fw releases · produção'],
-      ['12',   'FreeRTOS tasks · FRITG'],
-      ['200Hz','sensor fusion · EDROM'],
-      ['5',    'linguagens ativas'],
-    ],
-  },
-  stack: [
-    { id: 'REG[00]', label: 'Bare-Metal & RTOS', hint: 'interrupt-driven · deterministic · field-hardened', items: [
-      ['C++ / C',               95, 'ISR · DMA · bitfields'],
-      ['ESP32 + FreeRTOS',      90, 'preemptive · queues · semaphores'],
-      ['BLE 5.0 + ESP-NOW',     85, 'GAP/GATT · mesh flood · TTL routing'],
-      ['CAN FD + LTE cat-4',    80, 'ISO 11898 · AT cmds · SIM7600G'],
-      ['AES-256-GCM + HMAC',    78, 'flash encrypt · challenge-response'],
-    ]},
-    { id: 'REG[01]', label: 'Robotics Middleware', hint: 'ROS2 · real-time · sim-validated', items: [
-      ['ROS2 Humble (rclcpp)',   80, 'DDS QoS · lifecycle nodes'],
-      ['Docker + Compose',       75, 'isolated workspace · CI'],
-      ['Webots sim',             70, 'physics · sensor emulation'],
-      ['YOLOv8 + TF2',          65, 'inference · coord transforms'],
-      ['IK + Jacobian WBC',     62, 'biped gait · torque feedforward'],
-    ]},
-    { id: 'REG[02]', label: 'Data & Signal Analysis', hint: 'EDA · regression · RF instrumentation', items: [
-      ['Python',                 85, 'pipeline · parsing · scripting'],
-      ['Pandas + NumPy + SciPy', 80, 'EDA · time-series · FFT'],
-      ['Scikit-learn',           62, 'regression · k-fold · RMSE'],
-      ['MATLAB',                 65, 'control · bode · DSP'],
-      ['SA6 · 35-6200 MHz',      55, 'spectrum capture · pcap'],
-    ]},
-    { id: 'REG[03]', label: 'Web & AI Agents', hint: 'tool-calling · RAG · TypeScript strict', items: [
-      ['Claude API',             85, 'function tools · agent loops'],
-      ['TypeScript + React',     75, 'Zustand FSM · Framer Motion'],
-      ['OpenAI API',             72, 'LLM · embeddings · RAG'],
-      ['Vite + Tailwind',        70, 'build · code splitting'],
-    ]},
-  ],
-  missions: [
-    { id: 'M-001', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
-      title: 'Frotall FRITG01LTE — Industrial IoT Gateway',
-      role: 'Firmware R&D Engineer · Terasite Tecnologia',
-      summary: 'Edge device para telemetria de frota em máquinas pesadas. ESP32 + SIM7600G LTE, BLE 5.0 mesh (NimBLE), ISO 11898 CAN FD, AES-256-GCM, HMAC-SHA256. 30+ releases em produção.',
-      desc: 'FreeRTOS com 12 tasks priorizadas. CAN FD parsing para detecção de estado do motor via frame arbitration ID. Mesh BLE com flood routing (TTL=3) e fallback ESP-NOW. OTA com partição rollback e anti-rollback enforced. FFT de acelerômetro a 1 kHz para detecção de vibração. AES-256-GCM + HMAC-SHA256 challenge-response por sessão. Enclosure IP54, ISO 7637-2.',
-      chips: ['C++', 'ESP32', 'FreeRTOS', 'NimBLE', 'CAN FD', 'LTE cat-4', 'AES-256'],
-      side: [['heap_free','68% avg'],['fw_tasks','12 · tick=1kHz'],['ble_peers','ate 8 nos'],['releases','30+ campo']],
-      link: null },
-    { id: 'M-002', perms: 'drwxr-x', status: 'ongoing', cat: 'Robótica',
-      title: 'EDROM — Biped Humanoid · Robo Aurea',
-      role: 'President & Software Lead · EDROM / UFU',
-      summary: 'Robô humanoide bípede para RoboCup CBR 2025. IK analítica + Jacobian whole-body control, ROS2 Humble, sensor fusion 200 Hz, YOLOv8.',
-      desc: 'Locomoção via IK analítica + critério ZMP + Jacobian WBC para balanceamento dinâmico. Sensor fusion 200 Hz (IMU + encoders + FSR) com filtro Madgwick. Pipeline YOLOv8 (~14ms) com TF2 coordinate transforms. FSM para behavior autônomo. ROS2 rclcpp, DDS QoS policies, lifecycle nodes. Docker workspace + Webots para sim-to-real validation.',
-      chips: ['C++', 'ROS2', 'rclcpp', 'YOLOv8', 'Eigen', 'Docker', 'Webots'],
-      side: [['fusion_rate','200 Hz'],['dof','6 por perna · WBC'],['inference','YOLOv8 ~14ms'],['sim','Webots physics']],
-      link: 'https://github.com/edromufu/edrom_main' },
-    { id: 'M-003', perms: '-rw-r--', status: 'completed', cat: 'Embedded',
-      title: 'RF Antenna Validation Bench — Terasite',
-      role: 'Firmware R&D Engineer · Terasite',
-      summary: 'Bancada automatizada para qualificação de antenas do FRITG01LTE. State machine C++ com 3 perfis (BURN/WALK/CLOCK), scoring ponderado, Python pipeline -> HTML report.',
-      desc: 'State machine (C++ enum class): BURN (steady-state 72h), WALK (mobilidade), CLOCK (spatial mapping 5x5m). Janelas 15s: ICMP ping burst (3s) + TCP transfer (10s). Scoring: PLR*0.4 + RSSI_P10*0.33 + throughput*0.27. SA6 (35-6200 MHz) para raw spectrum. Pipeline Python parseia pcap + CSV, gera HTML com Plotly. Antena A53 -> score=100.',
-      chips: ['C++', 'Python', 'Plotly', 'pcap parsing', 'SA6 35-6200MHz'],
-      side: [['antenas','5 candidatas'],['perfis','BURN/WALK/CLOCK'],['scoring','PLR+RSSI+TP'],['winner','A53 score=100']],
-      link: 'https://github.com/guibertanha/estagio-terasite' },
-    { id: 'M-004', perms: '-rw-r--', status: 'completed', cat: 'Dados',
-      title: 'RF Field Analysis — Wi-Fi Antenna EDA',
-      role: 'P&D · Terasite Tecnologia',
-      summary: 'Pipeline EDA para validação de antenas Wi-Fi em campo real. SA6 (35-6200 MHz) em Caterpillar excavators — vibração, EMI diesel, supply 12V/24V.',
-      desc: 'Dataset via SA6 em unidades FRITG01LTE instaladas em escavadeiras Caterpillar. EDA: distribuição RSSI (Gaussian fit), PLR vs. tempo, TCP throughput vs. distância. Matriz de correlação Pearson, análise espectral FFT, e ranking por composite score. Findings para seleção de fornecedor de antena.',
-      chips: ['Python', 'Pandas', 'SciPy', 'Plotly', 'SA6 35-6200MHz'],
-      side: [['instrument','SA6 35-6200MHz'],['conditions','EMI vib 12/24V'],['analysis','FFT Pearson PLR']],
-      link: 'https://github.com/guibertanha/rf-field-analysis' },
-    { id: 'M-005', perms: 'drwxr-x', status: 'ongoing', cat: 'Web',
-      title: 'firmware-e-poeira — Browser Simulation Game',
-      role: 'Projeto pessoal',
-      summary: 'Jogo de simulação browser sobre startup de hardware. React 19, Zustand FSM, Framer Motion layout animations, TypeScript strict mode.',
-      desc: 'Zustand com state machine explícita (slices por domínio). React 19 concurrent features, Suspense, use() hook. Framer Motion layout animations. TypeScript strict mode, discriminated unions para eventos. Vite com code splitting.',
-      chips: ['React 19', 'TypeScript strict', 'Zustand FSM', 'Framer Motion', 'Vite'],
-      side: [['state_mgmt','Zustand slices'],['animations','Framer layout'],['ts_mode','strict no-any']],
-      link: 'https://github.com/guibertanha/firmware-e-poeira' },
-    { id: 'M-006', perms: '-rw-r--', status: 'completed', cat: 'Dados',
-      title: 'Data Science Pipeline — Regression Study',
-      role: 'Estudo pessoal',
-      summary: 'Pipeline end-to-end: ingestão, limpeza, EDA, feature engineering e regressão com k-fold cross-validation e métricas RMSE/MAE/R².',
-      desc: 'Pipeline modular: ingestão -> limpeza (missing data imputation, outlier IQR) -> EDA (correlation matrix, pair plots) -> feature engineering (polynomial, StandardScaler) -> regressão (Linear, Ridge, RF) com k-fold k=5. Métricas RMSE/MAE/R². Residual plots para diagnóstico.',
-      chips: ['Python', 'Scikit-learn', 'Pandas', 'Seaborn', 'k-fold CV'],
-      side: [['models','Linear Ridge RF'],['validation','k-fold k=5'],['metrics','RMSE MAE R2']],
-      link: 'https://github.com/guibertanha/data-science-study' },
-  ],
-  log: [
-    { hash: 'a3f9c21', when: 'AGO 2024 -> HEAD', current: true,
-      role: 'President & Software Lead',
-      where: { b: 'EDROM', rest: ' · Equipe de Robótica da UFU' },
-      notes: [
-        'Biped IK solver: analytical IK + Jacobian WBC para dynamic balance (ZMP criterion).',
-        'ROS2 rclcpp: lifecycle node management, DDS QoS tuning, TF2 transform tree.',
-        'YOLOv8 inference pipeline (~14ms avg) + FSM para autonomous soccer behavior.',
-        'Sensor fusion 200Hz: filtro Madgwick sobre IMU + encoders + FSR.',
-        'Docker workspace + Webots sim-to-real validation pipeline.',
-      ] },
-    { hash: 'b7d2e44', when: 'MAR 2024 -> HEAD', current: true,
-      role: 'Firmware R&D Engineer',
-      where: { b: 'Terasite Tecnologia', rest: ' · Uberlândia · MG' },
-      notes: [
-        'FreeRTOS: 12 tasks priorizadas, semaphores, event groups, DMA-driven SPI/I2C.',
-        'NimBLE GATT server + mesh flood routing (TTL=3) + ESP-NOW fallback.',
-        'ISO 11898 CAN FD driver — motor state via frame arbitration ID parsing.',
-        'AES-256-GCM flash encryption + HMAC-SHA256 challenge-response por sessão.',
-        'OTA via BLE mesh: dual-partition rollback + anti-rollback enforcement.',
-        'RF bench: C++ state machine (BURN/WALK/CLOCK) + Python pcap parser + HTML report.',
-      ] },
-    { hash: 'c1a8f03', when: '2024 -> HEAD', current: false,
-      role: 'AI Agents Developer',
-      where: { b: 'Independent Projects', rest: '' },
-      notes: [
-        'Tool-calling agents via Claude API function tools + structured output.',
-        'LLM integration com hardware MQTT streams e industrial data pipelines.',
-        'RAG prototype para base de conhecimento industrial (pgvector + LangChain).',
-      ] },
-  ],
-  contact: {
-    rows: [
-      { key: 'EMAIL',    val: 'guilhermebertanha0@gmail.com',     href: 'mailto:guilhermebertanha0@gmail.com', copy: true },
-      { key: 'GITHUB',   val: 'github.com/guibertanha',           href: 'https://github.com/guibertanha', copy: false },
-      { key: 'LINKEDIN', val: 'guilhermebertanhaconstante',        href: 'https://linkedin.com/in/guilhermebertanhaconstante', copy: false },
-      { key: 'LOCATION', val: 'Uberlândia · MG · BR · UTC-3',     href: null, copy: false },
-    ],
+  en: {
+    nav: ['INIT', '/proc/gb', 'reg_dump', 'ls -edu', 'ls -missions', 'git_log', 'ping'],
+    navIds: ['boot', 'about', 'stack', 'education', 'projects', 'experience', 'contact'],
+    boot: {
+      greet: 'SYSTEM ONLINE · PORTFOLIO 2026',
+      role: 'Mechatronics Engineering student at UFU. EDROM President (3rd place CBR 2025 · CBR 2026 in progress). R&D Intern at Terasite Tecnologia — RF validation & embedded firmware for industrial IoT gateway.',
+      meta: [['BASE', 'Uberlândia · MG'], ['STATUS', 'Available · 2026'], ['STACK', 'ESP32 · ROS2 · Python']],
+      cta: ['./missions →', 'ping guilherme →'],
+    },
+    about: {
+      title: 'About', cmd: 'cat /proc/gb/operator.profile',
+      dumpTitle: 'cat /proc/gb/operator.profile',
+      profile: [
+        ['operator',      'Guilherme Bertanha <guibertanha>'],
+        ['affiliation',   'UFU · Mechatronics Eng. · 8th semester · grad Jul/2027'],
+        ['role.primary',  'R&D Intern · Terasite Tecnologia (Feb–Jul 2026)'],
+        ['role.secondary','President & Software Lead · EDROM (Dec/2024 → present)'],
+        ['coordinates',   '-18.9186° S, -48.2772° W · UTC-3 (BRT)'],
+        ['architecture',  'bare-metal C++ → FreeRTOS → ROS2 → LLM agents'],
+        ['open_to',       'embedded collab · robotics R&D · AI systems'],
+      ],
+      bio: [
+        'I work on systems that cross layers — from RF signal in hardware to the AI agent interpreting the data. From sensor to decision.',
+        'At Terasite I built an RF antenna validation system for the FRITG01LTE industrial IoT gateway — test bench firmware in Arduino/C++, Python analysis pipeline, and automated HTML reports. I also contribute to the embedded firmware.',
+        'At EDROM I lead ~30 students building the Áurea humanoid robot. We placed 3rd nationally at CBR 2025. In 2026 we head to CBR in João Pessoa aiming for 1st place.',
+      ],
+      counters: [
+        ['8th', 'semester · mechatronics'],
+        ['3rd', 'place CBR 2025 · Áurea'],
+        ['2026', 'CBR · João Pessoa'],
+        ['5', 'active languages'],
+      ],
+    },
+    stack: {
+      title: 'Stack', cmd: 'readelf --STACK_REGISTER',
+      groups: [
+        { id: 'REG[00]', label: 'Bare-Metal & RTOS', hint: 'interrupt-driven · field-hardened', items: [
+          ['C++ / C',                 95, 'ISR · DMA · state machine'],
+          ['ESP32 + FreeRTOS',        85, 'tasks · queues · semaphores'],
+          ['Arduino / PlatformIO',    80, 'sketches · upload · debug'],
+          ['BLE 5.0 + ESP-NOW',       65, 'GATT · mesh · TTL routing'],
+          ['CAN FD',                  55, 'ISO 11898 · frame parsing'],
+        ]},
+        { id: 'REG[01]', label: 'Robotics Middleware', hint: 'ROS2 · sim-validated', items: [
+          ['ROS2 Humble (rclcpp)',    80, 'DDS QoS · lifecycle nodes'],
+          ['Docker + Compose',        75, 'isolated workspace · CI'],
+          ['Webots sim',              70, 'physics · sensor emulation'],
+          ['OpenCV + YOLOv8',         65, 'computer vision · TF2'],
+        ]},
+        { id: 'REG[02]', label: 'Data & Signals', hint: 'EDA · RF · regression', items: [
+          ['Python',                  85, 'analysis · pipeline · scripts'],
+          ['Pandas + NumPy + SciPy',  80, 'EDA · time-series · FFT'],
+          ['Matplotlib / Plotly',     75, 'visualization · HTML reports'],
+          ['Scikit-learn',            60, 'regression · k-fold · RMSE'],
+          ['SA6 35–6200 MHz',         55, 'spectrum analyzer'],
+        ]},
+        { id: 'REG[03]', label: 'Web & AI', hint: 'agents · TypeScript', items: [
+          ['Claude API',              80, 'function tools · agents'],
+          ['TypeScript + React',      70, 'Zustand · Vite · Tailwind'],
+          ['OpenAI API',              65, 'LLM · embeddings'],
+          ['PCB (KiCad)',             45, 'contribution · automotive conn.'],
+        ]},
+      ],
+    },
+    education: {
+      title: 'Education', cmd: 'ls -la ./education/',
+      items: [
+        { type: 'DEGREE', title: 'Mechatronics Engineering', inst: 'Federal University of Uberlândia (UFU)', period: '2023 → Jul 2027',
+          details: [['semester', '8th (of 10)'], ['campus', 'Santa Mônica · Uberlândia MG'], ['focus', 'Embedded · Robotics · Control']] },
+        { type: 'TEACHING ASST', title: 'Intro to Mechatronics Engineering', inst: 'Federal University of Uberlândia (UFU)', period: 'Aug 2023',
+          details: [['course', 'Intro to Mechatronics Eng.'], ['period', '2nd semester 2023'], ['role', 'Volunteer teaching asst']] },
+      ],
+    },
+    missions: {
+      title: 'Projects', cmd: 'ls -la ./missions/',
+      filters: ['All', 'Robotics', 'Embedded', 'Data'],
+      catMap: { 'All': null, 'Robotics': 'Robótica', 'Embedded': 'Embedded', 'Data': 'Dados' },
+      hint: 'click to expand',
+      items: [
+        { id: 'M-001', perms: 'drwxr-x', status: 'ongoing', cat: 'Robótica',
+          title: 'EDROM — Humanoid Robot · RoboCup',
+          role: 'President & Software Lead · EDROM / UFU',
+          summary: 'Bipedal humanoid robot for RoboCup Humanoid Soccer League. 3rd place nationally at CBR 2025. CBR 2026 in preparation (João Pessoa, PB).',
+          desc: 'Leading ~30 students across mechanics, electronics and software. Behavior FSM for autonomous soccer, kinematic control in ROS2, YOLOv8 pipeline for computer vision, sensor fusion with Madgwick filter. Docker workspace + Webots simulation before physical deployment.',
+          chips: ['C++', 'ROS2 Humble', 'Python', 'OpenCV', 'YOLOv8', 'Docker', 'Webots'],
+          side: [['result', '3rd place CBR 2025'], ['team', '~30 students'], ['next', 'CBR 2026 · JP-PB'], ['middleware', 'ROS2 + DDS QoS']],
+          link: 'https://github.com/edromufu/edrom_main' },
+        { id: 'M-002', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
+          title: 'RF Antenna Validation — Terasite',
+          role: 'R&D Intern · Terasite Tecnologia',
+          summary: 'RF antenna validation system for the FRITG01LTE industrial IoT gateway. Test bench in C++/Arduino, Python analysis pipeline, automated HTML report.',
+          desc: 'The FRITG01LTE PA66 enclosure (IP54) degrades the internal ESP32 antenna. I built the test bench: Arduino firmware (autonomous RSSI and ping logging), 3 profiles (BURN, WALK, CLOCK), Python pipeline to parse logs and generate HTML report with Plotly. 6 antennas in 2 phases. Phase 2 ongoing: A4 (rigid SMD) vs A5 (Molex T-Bar FPC).',
+          chips: ['C++', 'Arduino', 'Python', 'Plotly', 'SA6 35-6200MHz'],
+          side: [['antennas', '6 evaluated (A0–A5)'], ['phases', '2 (RSSI + Ping)'], ['instrument', 'SA6 · 35–6200 MHz'], ['status', 'A4 vs A5 · phase 2']],
+          link: 'https://github.com/guibertanha/estagio-terasite' },
+        { id: 'M-003', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
+          title: 'Frotall FRITG01LTE — Firmware Contributions',
+          role: 'R&D Intern · Terasite Tecnologia (Feb 2026 →)',
+          summary: 'Industrial IoT gateway for heavy machinery telemetry. ESP32 + SIM7600G LTE, BLE mesh, CAN FD, AES-256-GCM. Contributor since Feb/2026.',
+          desc: "FRITG01LTE is Terasite's main product: fleet telemetry for heavy construction machinery. Firmware in C++/FreeRTOS maintained by the team (lead: Neilton Morais). As intern I contribute with firmware adjustments for test bench compatibility and modified the Aptiv automotive connector on the PCB (KiCad).",
+          chips: ['C++', 'ESP32', 'FreeRTOS', 'KiCad (PCB)', 'BLE', 'CAN FD'],
+          side: [['hw', 'ESP32 + SIM7600G + LSM6DS3'], ['enclosure', 'PA66 · IP54 · 12/24V'], ['fw_ver', 'v3.15.0 (Mar/2026)'], ['role', 'contributor']],
+          link: null },
+        { id: 'M-004', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+          title: 'RF Field Analysis — Wi-Fi Antenna EDA',
+          role: 'R&D · Terasite Tecnologia',
+          summary: 'EDA pipeline for RSSI and ping measurements from the FRITG01LTE antenna validation bench. Visualizations, ranking, and executive report.',
+          desc: 'Python pipeline: parse RSSI and ping logs → cleaning → EDA (RSSI boxplots by antenna, ping failure rate, latency per test) → consolidated ranking by antenna family → executive report with Matplotlib/Plotly. Basis for field antenna selection decision.',
+          chips: ['Python', 'Pandas', 'NumPy', 'Matplotlib', 'Plotly'],
+          side: [['tests', '100+ CSVs analyzed'], ['metrics', 'RSSI · PLR · latency'], ['output', 'report + ranking'], ['repo', 'github.com/guibertanha']],
+          link: 'https://github.com/guibertanha/rf-field-analysis' },
+        { id: 'M-005', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+          title: 'Data Science — Walsoft Institute Consulting',
+          role: 'Personal study',
+          summary: 'Data Science consultancy simulation for Walsoft Computer Institute: EDA on BI student data, predictive models, and strategic recommendations.',
+          desc: 'Dataset: 77 BI program students. Cleaning: null imputation, categorical standardization. EDA: age distribution, study hours × Python grade correlation. Modeling: Linear Regression (baseline) vs Random Forest, 80/20 split, RMSE/MAE/R² metrics. Key finding: strong positive correlation between effort and grade.',
+          chips: ['Python', 'Pandas', 'Scikit-learn', 'Matplotlib', 'Random Forest'],
+          side: [['dataset', '77 students · BI'], ['models', 'Linear Reg · RF'], ['split', '80/20 train/test'], ['finding', 'effort ↔ grade: high r²']],
+          link: 'https://github.com/guibertanha/data-science-study' },
+      ],
+    },
+    log: {
+      title: 'Journey', cmd: 'git log --author=GB --stat',
+      head: 'commits · author=Guilherme Bertanha · reverse chronological',
+      items: [
+        { hash: 'HEAD', when: 'FEB 2026 → JUL 2026', current: true,
+          role: 'R&D Intern — RF Validation & Firmware',
+          where: { b: 'Terasite Tecnologia', rest: ' · Uberlândia MG' },
+          notes: [
+            'RF antenna validation bench for FRITG01LTE: Arduino firmware + Python pipeline + HTML auto-report.',
+            'Firmware contributions to FreeRTOS/C++ gateway (test bench compatibility).',
+            'PCB: Aptiv automotive connector modification in KiCad.',
+          ] },
+        { hash: 'a3f9c21', when: 'DEC 2024 → present', current: true,
+          role: 'President & Software Lead',
+          where: { b: 'EDROM', rest: ' · UFU Robotics Team' },
+          notes: [
+            'Leading ~30 students across mechanics, electronics and software.',
+            '3rd place nationally at CBR 2025 with the Áurea humanoid robot.',
+            'Behavior FSM, kinematics, YOLOv8 pipeline and Madgwick sensor fusion in ROS2.',
+            'Preparing for CBR 2026 (João Pessoa, PB) — goal: 1st place.',
+          ] },
+        { hash: 'b7d2e44', when: 'OCT 2023 → NOV 2024', current: false,
+          role: 'Member & Finance Director',
+          where: { b: 'EDROM', rest: ' · UFU Robotics Team' },
+          notes: [
+            'Joined the team as a software subsystem member.',
+            'Finance Director: team budget management.',
+            'Software development for the humanoid robot (ROS2, kinematics).',
+          ] },
+        { hash: 'c1a8f03', when: 'AUG 2023', current: false,
+          role: 'Teaching Assistant — Intro to Mechatronics',
+          where: { b: 'UFU', rest: ' · Federal University of Uberlândia' },
+          notes: [
+            'Volunteer TA in 2nd semester 2023 (2nd semester of the degree).',
+            'Supported incoming students in the Introduction to Mechatronics course.',
+          ] },
+      ],
+    },
+    contact: {
+      title: 'Contact', cmd: 'ping guilherme.bertanha -c 3',
+      pingLines: ['$ ping -c 3 guilherme.bertanha', 'PING guilherme.bertanha: 64 bytes · ttl=255', 'reply guaranteed · response < 24h'],
+      formTitle: 'send --message',
+      rows: [
+        { key: 'EMAIL',    val: 'guilhermebertanha0@gmail.com',    href: 'mailto:guilhermebertanha0@gmail.com', copy: true },
+        { key: 'GITHUB',   val: 'github.com/guibertanha',          href: 'https://github.com/guibertanha', copy: false },
+        { key: 'LINKEDIN', val: 'guilhermebertanhaconstante',       href: 'https://linkedin.com/in/guilhermebertanhaconstante', copy: false },
+        { key: 'LOCATION', val: 'Uberlândia · MG · BR · UTC-3',    href: null, copy: false },
+      ],
+    },
   },
 };
 
-// ============================================================
-// TOPBAR
-// ============================================================
-function Topbar({ active }) {
-  const [time, setTime] = useState('');
-  useEffect(() => {
-    const pad = (n) => String(n).padStart(2, '0');
-    const tick = () => {
-      const d = new Date();
-      setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} BRT`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const links = [
-    ['boot',       'INIT'],
-    ['about',      '/proc/gb'],
-    ['stack',      'reg_dump'],
-    ['projects',   'ls -missions'],
-    ['experience', 'git_log'],
-    ['contact',    'ping'],
-  ];
-
-  return (
-    <div className="topbar">
-      <div className="topbar__prompt">
-        <span className="topbar__prompt-tag">[FRITG-CONSOLE]</span>
-        <span style={{color: 'var(--fg-faint)'}}>&gt;</span>
-        <span className="topbar__prompt-path">gb-portfolio · fw=3.15.0 · arch=xtensa-lx6</span>
-        <span className="topbar__time">{time}</span>
-      </div>
-      <nav className="topbar__nav">
-        {links.map(([id, label]) => (
-          <a key={id} href={`#${id}`} className={active === id ? 'is-active' : ''}>{label}</a>
-        ))}
-      </nav>
-    </div>
-  );
-}
-
-// ============================================================
-// SECTION HEAD
-// ============================================================
-function SectionHead({ cmd, label }) {
-  return (
-    <div className="sec-head">
-      <span className="sec-head__caret">&gt;</span>
-      <span className="sec-head__cmd">{cmd}</span>
-      <span className="sec-head__rule"></span>
-      <h2 className="sec-head__label">{label}</h2>
-    </div>
-  );
-}
-
-// ============================================================
-// BOOT SEQUENCE — versão acessível
-// ============================================================
 const BOOT_LINES = [
   { text: 'I (42)    boot:    ESP32 chip · 2 CPU cores · WiFi/BT/BLE · silicon rev1', cls: 'dim' },
   { text: 'I (58)    boot:    Secure Boot v2 · eFuse BLOCK_KEY0 burned', cls: 'dim' },
@@ -1210,70 +1361,88 @@ const BOOT_LINES = [
   { text: '[ OK ] freertos_scheduler     12 tasks · tick=1 kHz · heap_free=68%', cls: 'ok' },
   { text: '', cls: '' },
   { text: '================================================================', cls: 'dim' },
-  { text: '  FRITG-CONSOLE :: Guilherme Bertanha · Uberlandia MG · UTC-3', cls: 'accent' },
-  { text: '  Eng. Mecatronica UFU · EDROM · Terasite Tecnologia', cls: 'dim' },
+  { text: '  FRITG-CONSOLE :: Guilherme Bertanha · Uberlândia MG · UTC-3', cls: 'accent' },
+  { text: '  Eng. Mecatrônica UFU · EDROM · Terasite Tecnologia', cls: 'dim' },
   { text: '================================================================', cls: 'dim' },
   { text: '', cls: '' },
   { text: '> system_ready · type "help" for command list_', cls: '' },
 ];
 
+function Topbar({ active, lang, setLang }) {
+  const [time, setTime] = useState('');
+  useEffect(() => {
+    const pad = n => String(n).padStart(2,'0');
+    const tick = () => { const d=new Date(); setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} BRT`); };
+    tick(); const id = setInterval(tick,1000); return () => clearInterval(id);
+  }, []);
+  const c = CONTENT[lang];
+  return (
+    <div className="topbar">
+      <div className="topbar__prompt">
+        <span className="topbar__prompt-tag">[FRITG-CONSOLE]</span>
+        <span style={{color:'var(--fg-faint)'}}>{'>'}</span>
+        <span className="topbar__prompt-path">gb-portfolio · fw=3.15.0 · arch=xtensa-lx6</span>
+        <span className="topbar__time">{time}</span>
+        <div className="lang-toggle">
+          <button className={lang==='pt'?'is-active':''} onClick={()=>setLang('pt')}>PT</button>
+          <button className={lang==='en'?'is-active':''} onClick={()=>setLang('en')}>EN</button>
+        </div>
+      </div>
+      <nav className="topbar__nav">
+        {c.nav.map((label, i) => (
+          <a key={i} href={`#${c.navIds[i]}`} className={active===c.navIds[i]?'is-active':''}>{label}</a>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function SectionHead({ cmd, label }) {
+  return (
+    <div className="sec-head">
+      <span className="sec-head__caret">{'>'}</span>
+      <span className="sec-head__cmd">{cmd}</span>
+      <span className="sec-head__rule"></span>
+      <h2 className="sec-head__label">{label}</h2>
+    </div>
+  );
+}
+
 function BootSequence({ onComplete }) {
   const [count, setCount] = useState(0);
   const done = count >= BOOT_LINES.length;
   const completedRef = useRef(false);
-
   useEffect(() => {
     if (count >= BOOT_LINES.length) {
-      if (!completedRef.current) {
-        completedRef.current = true;
-        onComplete && onComplete();
-      }
+      if (!completedRef.current) { completedRef.current = true; onComplete && onComplete(); }
       return;
     }
-    const prevText = count > 0 ? BOOT_LINES[count - 1].text : '';
-    const initial = count === 0 ? 250 : 0;
-    const delay = initial || (prevText === '' ? 50 : (prevText.startsWith('  ✓') ? 95 : Math.random() * 40 + 25));
-    const id = setTimeout(() => setCount(c => c + 1), delay);
+    const prev = count > 0 ? BOOT_LINES[count-1].text : '';
+    const delay = count===0 ? 250 : (prev==='' ? 50 : Math.random()*40+20);
+    const id = setTimeout(() => setCount(c=>c+1), delay);
     return () => clearTimeout(id);
   }, [count]);
-
-  const lines = BOOT_LINES.slice(0, count);
-
   return (
     <div className="boot__console">
-      {lines.map((line, i) => (
-        <span key={i} className={`boot__line ${line?.cls || ''}`}>{line?.text || ' '}</span>
+      {BOOT_LINES.slice(0,count).map((line,i) => (
+        <span key={i} className={`boot__line ${line.cls||''}`}>{line.text||' '}</span>
       ))}
       {!done && <span className="boot__cursor"></span>}
     </div>
   );
 }
 
-// ============================================================
-// HERO
-// ============================================================
-function Hero() {
+function Hero({ lang }) {
   const [booted, setBooted] = useState(false);
+  const c = CONTENT[lang].boot;
   return (
-    <section id="boot" className="boot" data-screen-label="01 Início">
+    <section id="boot" className="boot">
       <BootSequence onComplete={() => setBooted(true)} />
-      <div className={`boot__hero ${booted ? 'is-visible' : ''}`}>
-        <h1 className="boot__name">
-          Guilherme<br/>
-          Bertanha<em><span className="boot__cursor-inline"></span></em>
-        </h1>
-        <p className="boot__role">
-          Engenheiro Mecatrônico em formação na UFU. <strong>Projeto a parte de dentro
-          de máquinas e robôs</strong> — o circuito, o programa que roda no chip,
-          e a inteligência que faz tudo funcionar junto. Lidero um time de robótica
-          humanoide na universidade e trabalho construindo aparelhos industriais.
-        </p>
+      <div className={`boot__hero ${booted?'is-visible':''}`}>
+        <h1 className="boot__name">Guilherme<br/>Bertanha<em><span className="boot__cursor-inline"></span></em></h1>
+        <p className="boot__role">{c.role}</p>
         <div className="boot__meta">
-          {[
-            ['ONDE',      'Uberlândia · MG'],
-            ['ESTADO',    'aberto a colaborações · 2026'],
-            ['TRABALHO',  'embarcado · robótica · IA'],
-          ].map(([l, v]) => (
+          {c.meta.map(([l,v]) => (
             <div key={l} className="boot__meta-cell">
               <span className="boot__meta-label">{l}</span>
               <span className="boot__meta-value">{v}</span>
@@ -1281,26 +1450,23 @@ function Hero() {
           ))}
         </div>
         <div className="boot__cta">
-          <a className="btn btn--primary" href="#projects">ver projetos <span className="arr">→</span></a>
-          <a className="btn" href="#contact">falar comigo <span className="arr">→</span></a>
+          <a className="btn btn--primary" href="#projects">{c.cta[0]}</a>
+          <a className="btn" href="#contact">{c.cta[1]}</a>
         </div>
       </div>
     </section>
   );
 }
 
-// ============================================================
-// ABOUT
-// ============================================================
-function About() {
-  const a = CONTENT.about;
+function About({ lang }) {
+  const a = CONTENT[lang].about;
   return (
-    <section id="about" data-screen-label="02 Sobre">
-      <SectionHead cmd="cat /proc/gb/operator.profile" label="Sobre" />
+    <section id="about">
+      <SectionHead cmd={a.cmd} label={a.title} />
       <div className="profile-dump">
-        <div className="profile-dump__header">cat /proc/gb/operator.profile</div>
+        <div className="profile-dump__header">{a.dumpTitle}</div>
         <div className="profile-dump__body">
-          {a.profile.map(([k, v]) => (
+          {a.profile.map(([k,v]) => (
             <div key={k} className="profile-dump__row">
               <span className="profile-dump__key">{k}</span>
               <span className="profile-dump__val">{v}</span>
@@ -1308,13 +1474,10 @@ function About() {
           ))}
         </div>
       </div>
-
       <div className="bio-grid">
-        <div className="bio-text">
-          {a.bio.map((p, i) => <p key={i}>{p}</p>)}
-        </div>
+        <div className="bio-text">{a.bio.map((p,i) => <p key={i}>{p}</p>)}</div>
         <div className="counters">
-          {a.counters.map(([v, l]) => (
+          {a.counters.map(([v,l]) => (
             <div key={l} className="counter">
               <div className="counter__val">{v}</div>
               <div className="counter__label">{l}</div>
@@ -1326,15 +1489,13 @@ function About() {
   );
 }
 
-// ============================================================
-// STACK
-// ============================================================
-function Stack() {
+function Stack({ lang }) {
+  const s = CONTENT[lang].stack;
   return (
-    <section id="stack" data-screen-label="03 O que sei fazer">
-      <SectionHead cmd="readelf --STACK_REGISTER" label="O que sei fazer" />
+    <section id="stack">
+      <SectionHead cmd={s.cmd} label={s.title} />
       <div className="stack-section">
-        {CONTENT.stack.map((reg) => (
+        {s.groups.map((reg) => (
           <div key={reg.id} className="stack-reg">
             <div className="stack-reg__head">
               <span className="reg-id">{reg.id}</span>
@@ -1342,14 +1503,11 @@ function Stack() {
               <span className="reg-count">— {reg.hint}</span>
             </div>
             <div className="stack-reg__items">
-              {reg.items.map(([name, pct, tag], i) => (
+              {reg.items.map(([name,pct,tag],i) => (
                 <div key={name} className="stack-item">
                   <div className="stack-item__name">{name}</div>
                   <div className="stack-item__bar">
-                    <div
-                      className="stack-item__fill"
-                      style={{ '--pct': `${pct}%`, animationDelay: `${i * 60}ms` }}
-                    ></div>
+                    <div className="stack-item__fill" style={{'--pct':`${pct}%`,animationDelay:`${i*60}ms`}}></div>
                   </div>
                   <div className="stack-item__tag">{tag}</div>
                 </div>
@@ -1362,78 +1520,74 @@ function Stack() {
   );
 }
 
-// ============================================================
-// MISSIONS / PROJECTS
-// ============================================================
-function Missions() {
-  const [filter, setFilter] = useState('Todos');
-  const [openId, setOpenId] = useState('M-001');
-  const filters = ['Todos', 'Embedded', 'Robótica', 'Dados', 'Web'];
-
-  const items = useMemo(() => {
-    if (filter === 'Todos') return CONTENT.missions;
-    return CONTENT.missions.filter(m => m.cat === filter);
-  }, [filter]);
-
+function Education({ lang }) {
+  const e = CONTENT[lang].education;
   return (
-    <section id="projects" data-screen-label="04 Projetos">
-      <SectionHead cmd="ls -la ./missions/" label="Projetos" />
-      <div className="mission-filters">
-        {filters.map(f => (
-          <button
-            key={f}
-            className={`mission-filter ${filter === f ? 'is-active' : ''}`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
+    <section id="education">
+      <SectionHead cmd={e.cmd} label={e.title} />
+      <div className="edu-grid">
+        {e.items.map((item, i) => (
+          <div key={i} className="edu-card">
+            <div className="edu-card__head">{item.type}</div>
+            <div className="edu-card__body">
+              <div className="edu-card__title">{item.title}</div>
+              <div className="edu-card__inst">{item.inst}</div>
+              <div className="edu-card__detail">
+                <span><b>period</b>{item.period}</span>
+                {item.details.map(([k,v]) => <span key={k}><b>{k}</b>{v}</span>)}
+              </div>
+            </div>
+          </div>
         ))}
       </div>
-      <div className="missions__hint">
-        <b>{items.length} projeto{items.length !== 1 ? 's' : ''}</b> · clique em qualquer linha pra ver os detalhes
+    </section>
+  );
+}
+
+function Missions({ lang }) {
+  const p = CONTENT[lang].missions;
+  const [filter, setFilter] = useState(p.filters[0]);
+  const [openId, setOpenId] = useState('M-001');
+  useEffect(() => { setFilter(p.filters[0]); }, [lang]);
+  const items = useMemo(() => {
+    if (filter === p.filters[0]) return p.items;
+    const catTarget = p.catMap ? p.catMap[filter] : filter;
+    return p.items.filter(m => m.cat === (catTarget || filter));
+  }, [filter, lang]);
+  return (
+    <section id="projects">
+      <SectionHead cmd={p.cmd} label={p.title} />
+      <div className="mission-filters">
+        {p.filters.map(f => <button key={f} className={`mission-filter ${filter===f?'is-active':''}`} onClick={()=>setFilter(f)}>{f}</button>)}
       </div>
+      <div className="missions__hint"><b>{items.length}</b> {lang==='pt'?`missão(ões) · ${p.hint}`:`mission(s) · ${p.hint}`}</div>
       <div className="missions">
-        {items.map((m) => {
-          const isOpen = openId === m.id;
+        {items.map(m => {
+          const isOpen = openId===m.id;
           return (
-            <div key={m.id} className={`mission ${isOpen ? 'is-open' : ''}`}>
-              <div className="mission__trigger" onClick={() => setOpenId(isOpen ? null : m.id)}>
+            <div key={m.id} className={`mission ${isOpen?'is-open':''}`}>
+              <div className="mission__trigger" onClick={()=>setOpenId(isOpen?null:m.id)}>
                 <span className="mission__perms">{m.perms}</span>
                 <span className="mission__id">[{m.id}]</span>
-                <div className="mission__main">
-                  <span className="mission__title">{m.title}</span>
-                </div>
-                <span className={`mission__status ${m.status === 'ongoing' ? 'warn' : 'ok'}`}>
-                  {m.status === 'ongoing' ? 'EM ANDAMENTO' : 'CONCLUÍDO'}
+                <div className="mission__main"><span className="mission__title">{m.title}</span></div>
+                <span className={`mission__status ${m.status==='ongoing'?'warn':'ok'}`}>
+                  {m.status==='ongoing'?(lang==='pt'?'ATIVO':'ACTIVE'):(lang==='pt'?'CONCLUÍDO':'DONE')}
                 </span>
-                <span className="mission__caret">▸</span>
+                <span className="mission__caret">&#9658;</span>
               </div>
               <div className="mission__expand">
                 <div className="mission__detail">
                   <div>
                     <div className="mission__detail-text">
                       <span className="mission__detail-role">{m.role}</span>
-                      <div style={{marginBottom: 12, color: 'var(--fg)'}}>{m.summary}</div>
-                      <div style={{fontSize: 13, color: 'var(--fg-dim)'}}>{m.desc}</div>
-                      <div className="mission__chips">
-                        {m.chips.map(c => <span key={c} className="chip">{c}</span>)}
-                      </div>
-                      {m.link && (
-                        <div>
-                          <a className="mission__link" href={m.link} target="_blank" rel="noopener">
-                            ver no GitHub <span>→</span>
-                          </a>
-                        </div>
-                      )}
+                      <div style={{marginBottom:12,color:'var(--fg)'}}>{m.summary}</div>
+                      <div style={{fontSize:13,color:'var(--fg-dim)'}}>{m.desc}</div>
+                      <div className="mission__chips">{m.chips.map(c=><span key={c} className="chip">{c}</span>)}</div>
+                      {m.link && <div><a className="mission__link" href={m.link} target="_blank" rel="noopener">{lang==='pt'?'ver no GitHub →':'view on GitHub →'}</a></div>}
                     </div>
                   </div>
                   <dl className="mission__detail-side">
-                    {m.side.map(([k, v]) => (
-                      <React.Fragment key={k}>
-                        <dt>{k}</dt>
-                        <dd>{v}</dd>
-                      </React.Fragment>
-                    ))}
+                    {m.side.map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd>{v}</dd></React.Fragment>)}
                   </dl>
                 </div>
               </div>
@@ -1445,36 +1599,28 @@ function Missions() {
   );
 }
 
-// ============================================================
-// EXPERIENCE
-// ============================================================
-function Experience() {
-  const items = CONTENT.log;
+function Experience({ lang }) {
+  const x = CONTENT[lang].log;
   return (
-    <section id="experience" data-screen-label="05 Trajetória">
-      <SectionHead cmd="git log --author=GB --stat" label="Trajetória" />
-      <div className="gitlog__head">
-        <b>{items.length} commits</b> · git log --author=GB
-      </div>
+    <section id="experience">
+      <SectionHead cmd={x.cmd} label={x.title} />
+      <div className="gitlog__head"><b>{x.items.length}</b> · {x.head}</div>
       <div className="gitlog">
-        {items.map((it) => (
-          <div key={it.hash} className="gitlog__entry">
+        {x.items.map((it,i) => (
+          <div key={i} className="gitlog__entry">
             <div className="gitlog__gutter">
-              <div className={`gitlog__dot ${it.current ? 'is-current' : ''}`}></div>
+              <div className={`gitlog__dot ${it.current?'is-current':''}`}></div>
               <div className="gitlog__line"></div>
             </div>
             <div className="gitlog__content">
               <div className="gitlog__meta">
+                <span className="gitlog__hash">{it.hash}</span>
                 <span className="gitlog__when">{it.when}</span>
-                {it.current && <span style={{color: 'var(--ok)'}}>(atual)</span>}
+                {it.current && <span style={{color:'var(--ok)',fontSize:10}}>{lang==='pt'?'(atual)':'(current)'}</span>}
               </div>
               <div className="gitlog__subject">{it.role}</div>
-              <div className="gitlog__where">
-                <b>{it.where.b}</b>{it.where.rest}
-              </div>
-              <ul className="gitlog__notes">
-                {it.notes.map((n, i) => <li key={i}>{n}</li>)}
-              </ul>
+              <div className="gitlog__where"><b>{it.where.b}</b>{it.where.rest}</div>
+              <ul className="gitlog__notes">{it.notes.map((n,j)=><li key={j}>{n}</li>)}</ul>
             </div>
           </div>
         ))}
@@ -1483,334 +1629,185 @@ function Experience() {
   );
 }
 
-// ============================================================
-// CONTACT
-// ============================================================
-function PingRow({ row }) {
+function PingRow({ row, lang }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopy = useCallback(e => {
+    e.preventDefault(); e.stopPropagation();
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(row.val).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      });
+      navigator.clipboard.writeText(row.val).then(() => { setCopied(true); setTimeout(()=>setCopied(false),1500); });
     }
   }, [row.val]);
-
   return (
     <div className="ping-row">
       <span className="ping-row__key">{row.key}</span>
       <span className="ping-row__val">
-        {row.href ? <a href={row.href} target={row.href.startsWith('http') ? '_blank' : undefined} rel="noopener">{row.val}</a> : row.val}
+        {row.href ? <a href={row.href} target={row.href.startsWith('http')?'_blank':undefined} rel="noopener">{row.val}</a> : row.val}
       </span>
-      {row.copy && (
-        <button className={`ping-row__action ${copied ? 'is-copied' : ''}`} onClick={handleCopy}>
-          {copied ? 'copied ✓' : 'copy'}
-        </button>
-      )}
-      {!row.copy && row.href && (
-        <a className="ping-row__action" href={row.href} target={row.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
-          abrir →
-        </a>
-      )}
-      {!row.copy && !row.href && (
-        <span className="ping-row__action" style={{borderColor: 'var(--line-strong)', color: 'var(--fg-faint)', cursor: 'default'}}>—</span>
-      )}
+      {row.copy && <button className={`ping-row__action ${copied?'is-copied':''}`} onClick={handleCopy}>{copied?'copied ✓':'copy'}</button>}
+      {!row.copy && row.href && <a className="ping-row__action" href={row.href} target={row.href.startsWith('http')?'_blank':undefined} rel="noopener">open →</a>}
+      {!row.copy && !row.href && <span className="ping-row__action" style={{borderColor:'var(--line-strong)',color:'var(--fg-faint)',cursor:'default'}}>—</span>}
     </div>
   );
 }
 
-function Contact() {
+function Contact({ lang }) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSending(true);
-    setTimeout(() => {
-      setSending(false);
-      setSent(true);
-      e.target.reset();
-      setTimeout(() => setSent(false), 4000);
-    }, 700);
-  };
-
+  const c = CONTENT[lang].contact;
+  const labels = lang==='pt'
+    ? {name:'seu nome',email:'seu e-mail',msg:'mensagem',ph_name:'ex: João Engenheiro',ph_email:'voce@email.com',ph_msg:'o que você está construindo?',submit:'enviar →',sending:'enviando...',sent:'[ OK ] mensagem enviada · respondo em até 24h',hint:'ou copie meu email ao lado'}
+    : {name:'your name',email:'your email',msg:'message',ph_name:'e.g. John Engineer',ph_email:'you@domain.com',ph_msg:'what are you building?',submit:'send →',sending:'transmitting...',sent:'[ OK ] message sent · reply within 24h',hint:'or copy my email from the card'};
+  const handleSubmit = async e => { e.preventDefault(); setSending(true); setTimeout(()=>{setSending(false);setSent(true);e.target.reset();setTimeout(()=>setSent(false),4000);},700); };
   return (
-    <section id="contact" data-screen-label="06 Contato">
-      <SectionHead cmd="ping guilherme.bertanha -c 3" label="Contato" />
+    <section id="contact" className="contact">
+      <SectionHead cmd={c.cmd} label={c.title} />
       <div className="ping-section">
         <div className="ping-output">
-          <div className="ping-output__bar">canais diretos</div>
+          <div className="ping-output__bar">{lang==='pt'?'canais diretos':'direct channels'}</div>
           <div className="ping-output__body">
-            <div className="ping-output__intro" style={{fontFamily: 'var(--mono)'}}>
-              <span style={{color: 'var(--fg)'}}>procurando Guilherme...</span><br/>
-              <b>encontrado ✓</b> — geralmente respondo em até 48h<br/>
-              <span style={{color: 'var(--fg-faint)'}}>─── escolha um canal abaixo ───</span>
+            <div className="ping-output__intro" style={{fontFamily:'var(--mono)'}}>
+              {c.pingLines.map((l,i)=><React.Fragment key={i}><span style={{color:i===0?'var(--info)':i===1?'var(--ok)':'var(--fg-faint)'}}>{l}</span><br/></React.Fragment>)}
             </div>
-            {CONTENT.contact.rows.map((row) => <PingRow key={row.key} row={row} />)}
+            {c.rows.map(row => <PingRow key={row.key} row={row} lang={lang} />)}
           </div>
         </div>
-
         <form className="contact-form" onSubmit={handleSubmit}>
-          <div className="contact-form__header">
-            <b>$</b> send --message
-          </div>
-          <label>
-            seu nome
-            <input type="text" name="name" required placeholder="ex: Maria da Silva"/>
-          </label>
-          <label>
-            seu e-mail
-            <input type="email" name="email" required placeholder="voce@email.com"/>
-          </label>
-          <label>
-            mensagem
-            <textarea name="message" required placeholder="o que você está construindo? como posso ajudar?"></textarea>
-          </label>
-          <button type="submit" className="contact-form__submit" disabled={sending}>
-            {sending ? 'transmitting...' : 'send --payload →'}
-          </button>
-          {sent && (
-            <div className="contact-form__status">
-              ✓ mensagem enviada · respondo em até 48h
-            </div>
-          )}
-          <div className="contact-form__hint">
-            ou copie meu email no card ao lado e me escreva direto
-          </div>
+          <div className="contact-form__header"><b>$</b> {c.formTitle}</div>
+          <label>{labels.name}<input type="text" name="name" required placeholder={labels.ph_name}/></label>
+          <label>{labels.email}<input type="email" name="email" required placeholder={labels.ph_email}/></label>
+          <label>{labels.msg}<textarea name="message" required placeholder={labels.ph_msg}></textarea></label>
+          <button type="submit" className="contact-form__submit" disabled={sending}>{sending?labels.sending:labels.submit}</button>
+          {sent && <div className="contact-form__status">{labels.sent}</div>}
+          <div className="contact-form__hint">{labels.hint}</div>
         </form>
       </div>
     </section>
   );
 }
 
-// ============================================================
-// FLOATING TERMINAL
-// ============================================================
-const HELP_TEXT = [
-  { cls: 'info', text: 'comandos disponíveis:' },
-  { cls: '', text: '  ajuda       → mostra esta mensagem' },
-  { cls: '', text: '  sobre       → rola até a seção Sobre' },
-  { cls: '', text: '  sei         → rola até "O que sei fazer"' },
-  { cls: '', text: '  projetos    → rola até Projetos' },
-  { cls: '', text: '  trajetoria  → rola até Trajetória' },
-  { cls: '', text: '  contato     → rola até Contato' },
-  { cls: '', text: '  github      → abre meu GitHub' },
-  { cls: '', text: '  linkedin    → abre meu LinkedIn' },
-  { cls: '', text: '  email       → abre seu app de e-mail' },
-  { cls: '', text: '  quem        → diz quem eu sou' },
-  { cls: '', text: '  hora        → mostra a hora aqui' },
-  { cls: '', text: '  limpar      → limpa o histórico' },
-];
-
-function FloatingTerminal() {
+function FloatingTerminal({ lang }) {
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState([
-    { cls: 'ok', text: '[FRITG-CONSOLE] terminal aberto · pode digitar' },
-    { cls: 'info', text: 'digite "ajuda" pra ver os comandos' },
+    {cls:'ok',text:'[FRITG-CONSOLE] shell attached · tty ready'},
+    {cls:'info',text:'type "help" for available commands'},
   ]);
   const [input, setInput] = useState('');
   const [cmdHist, setCmdHist] = useState([]);
   const [histIdx, setHistIdx] = useState(-1);
   const inputRef = useRef(null);
-  const historyRef = useRef(null);
-
-  useEffect(() => {
-    if (open && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (historyRef.current) {
-      historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }
-  }, [history]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === '`' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
-        e.preventDefault();
-        setOpen(v => !v);
-      }
-      if (e.key === 'Escape' && open) setOpen(false);
+  const histRef = useRef(null);
+  useEffect(()=>{if(open&&inputRef.current)setTimeout(()=>inputRef.current?.focus(),50);},[open]);
+  useEffect(()=>{if(histRef.current)histRef.current.scrollTop=histRef.current.scrollHeight;},[history]);
+  useEffect(()=>{
+    const handler=e=>{
+      if(e.key==='`'&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){e.preventDefault();setOpen(v=>!v);}
+      if(e.key==='Escape'&&open)setOpen(false);
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open]);
-
-  const append = (lines) => setHistory(h => [...h, ...lines]);
-
-  const runCmd = (raw) => {
-    const cmd = raw.trim().toLowerCase();
-    if (!cmd) return;
-    append([{ cls: 'user', text: `gb ~ $ ${raw}` }]);
-    setCmdHist(h => [raw, ...h]);
-    setHistIdx(-1);
-
-    const scrollTo = (id, label) => {
-      const el = document.getElementById(id);
-      if (el) {
-        const top = el.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({ top, behavior: 'smooth' });
-        append([{cls:'ok', text:`→ levando você até ${label}`}]);
-      } else {
-        append([{cls:'err', text:`não encontrei: ${id}`}]);
-      }
-    };
-
-    switch (cmd) {
-      case 'ajuda': case 'help': case '?':
-        append(HELP_TEXT); break;
-      case 'limpar': case 'clear': case 'cls':
-        setHistory([]); break;
-      case 'quem': case 'whoami':
-        append([{cls:'info', text:'Guilherme Bertanha · engenheiro mecatrônico · Uberlândia MG'}]);
-        break;
-      case 'hora': case 'date':
-        append([{cls:'info', text: new Date().toLocaleString('pt-BR', {dateStyle: 'full', timeStyle: 'medium'})}]);
-        break;
-      case 'sobre': case 'about':
-        scrollTo('about', 'Sobre'); break;
-      case 'sei': case 'stack': case 'skills':
-        scrollTo('stack', 'O que sei fazer'); break;
-      case 'projetos': case 'projects':
-        scrollTo('projects', 'Projetos'); break;
-      case 'trajetoria': case 'trajetória': case 'log': case 'experience':
-        scrollTo('experience', 'Trajetória'); break;
-      case 'contato': case 'contact':
-        scrollTo('contact', 'Contato'); break;
-      case 'github': case 'gh':
-        window.open(CONTENT.meta.github, '_blank');
-        append([{cls:'ok', text:'→ abrindo GitHub em nova aba'}]); break;
-      case 'linkedin': case 'li':
-        window.open(CONTENT.meta.linkedin, '_blank');
-        append([{cls:'ok', text:'→ abrindo LinkedIn em nova aba'}]); break;
-      case 'email': case 'mail': case 'e-mail':
-        window.location.href = `mailto:${CONTENT.meta.email}`;
-        append([{cls:'ok', text:`→ abrindo seu app de e-mail`}]); break;
-      case 'sair': case 'fechar': case 'exit': case 'quit':
-        append([{cls:'info', text:'fechando...'}]);
-        setTimeout(() => setOpen(false), 300); break;
-      case 'oi': case 'olá': case 'ola':
-        append([{cls:'info', text:'oi! obrigado por explorar 🙂 digite "ajuda" pra ver o que dá pra fazer aqui.'}]);
-        break;
-      case 'obrigado': case 'obrigada': case 'valeu':
-        append([{cls:'info', text:'imagina, fico feliz que tenha gostado.'}]); break;
-      default:
-        append([{cls:'err', text:`não entendi: "${cmd}" — digite "ajuda" pra ver os comandos`}]);
+    window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);
+  },[open]);
+  const append = lines => setHistory(h=>[...h,...lines]);
+  const scrollTo = (id, label) => {
+    const el=document.getElementById(id);
+    if(el){window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'});append([{cls:'ok',text:`→ scrolling to ${label}`}]);}
+    else append([{cls:'err',text:`not found: ${id}`}]);
+  };
+  const runCmd = raw => {
+    const cmd=raw.trim().toLowerCase();
+    if(!cmd)return;
+    append([{cls:'user',text:`gb ~ $ ${raw}`}]);
+    setCmdHist(h=>[raw,...h]);setHistIdx(-1);
+    switch(cmd){
+      case 'help':case '?':append([
+        {cls:'info',text:'commands:'},
+        {cls:'',text:'  help · uname -a · whoami'},
+        {cls:'',text:'  cat /proc/gb  → about'},
+        {cls:'',text:'  reg_dump      → stack'},
+        {cls:'',text:'  ls -edu       → education'},
+        {cls:'',text:'  ls -missions  → projects'},
+        {cls:'',text:'  git log       → experience'},
+        {cls:'',text:'  ping          → contact'},
+        {cls:'',text:'  github · linkedin · clear'},
+      ]);break;
+      case 'uname -a':append([{cls:'info',text:'FRITG-CONSOLE 3.15.0 xtensa-lx6 · Guilherme Bertanha · UFU · Uberlândia MG'}]);break;
+      case 'whoami':append([{cls:'info',text:'Guilherme Bertanha · Eng. Mecatrônica UFU · EDROM · Terasite'}]);break;
+      case 'cat /proc/gb':case 'about':scrollTo('about','about');break;
+      case 'reg_dump':case 'stack':scrollTo('stack','stack');break;
+      case 'ls -edu':case 'education':scrollTo('education','education');break;
+      case 'ls -missions':case 'projects':scrollTo('projects','projects');break;
+      case 'git log':case 'log':case 'experience':scrollTo('experience','experience');break;
+      case 'ping':case 'contact':scrollTo('contact','contact');break;
+      case 'github':case 'gh':window.open(META.github,'_blank');append([{cls:'ok',text:'→ opening github.com/guibertanha'}]);break;
+      case 'linkedin':case 'li':window.open(META.linkedin,'_blank');append([{cls:'ok',text:'→ opening LinkedIn'}]);break;
+      case 'clear':case 'cls':setHistory([]);break;
+      case 'exit':case 'quit':append([{cls:'info',text:'closing...'}]);setTimeout(()=>setOpen(false),300);break;
+      default:append([{cls:'err',text:`command not found: "${cmd}" — type "help"`}]);
     }
   };
-
-  const onSubmit = (e) => {
-    e.preventDefault();
-    runCmd(input);
-    setInput('');
+  const onSubmit=e=>{e.preventDefault();runCmd(input);setInput('');};
+  const onKeyDown=e=>{
+    if(e.key==='ArrowUp'){e.preventDefault();const n=Math.min(cmdHist.length-1,histIdx+1);if(n>=0&&cmdHist[n]){setInput(cmdHist[n]);setHistIdx(n);}}
+    else if(e.key==='ArrowDown'){e.preventDefault();const n=histIdx-1;if(n<0){setInput('');setHistIdx(-1);}else{setInput(cmdHist[n]);setHistIdx(n);}}
   };
-
-  const onKeyDown = (e) => {
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const next = Math.min(cmdHist.length - 1, histIdx + 1);
-      if (next >= 0 && cmdHist[next]) { setInput(cmdHist[next]); setHistIdx(next); }
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const next = histIdx - 1;
-      if (next < 0) { setInput(''); setHistIdx(-1); }
-      else { setInput(cmdHist[next]); setHistIdx(next); }
-    }
-  };
-
   return (
     <>
-      <button className="terminal-btn" onClick={() => setOpen(v => !v)} aria-label="Abrir terminal" title="atalhos por digitar ` ou clicar">
-        &gt;_
-      </button>
-      <div className={`terminal-float ${open ? 'is-open' : ''}`}>
+      <button className="terminal-btn" onClick={()=>setOpen(v=>!v)} title="Press ` to toggle">&gt;_</button>
+      <div className={`terminal-float ${open?'is-open':''}`}>
         <div className="terminal-float__bar">
           <span>FRITG-CONSOLE · /dev/tty0</span>
-          <button className="terminal-float__close" onClick={() => setOpen(false)} aria-label="Fechar">✕</button>
+          <button className="terminal-float__close" onClick={()=>setOpen(false)}>&#x2715;</button>
         </div>
-        <div className="terminal-float__history" ref={historyRef}>
-          {history.map((line, i) => (
-            <div key={i} className={`terminal-float__line ${line.cls}`}>{line.text}</div>
-          ))}
+        <div className="terminal-float__history" ref={histRef}>
+          {history.map((line,i)=><div key={i} className={`terminal-float__line ${line.cls}`}>{line.text}</div>)}
         </div>
         <form className="terminal-float__input-row" onSubmit={onSubmit}>
-          <span className="terminal-float__prompt-sym">&gt;</span>
-          <input
-            ref={inputRef}
-            type="text"
-            className="terminal-float__input"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder='ex: "ajuda" · "projetos" · "github"'
-            autoComplete="off"
-            spellCheck="false"
-          />
+          <span className="terminal-float__prompt-sym">{'>'}</span>
+          <input ref={inputRef} type="text" className="terminal-float__input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKeyDown} placeholder='e.g. "help" · "ls -missions" · "github"' autoComplete="off" spellCheck="false"/>
         </form>
       </div>
     </>
   );
 }
 
-// ============================================================
-// FOOTER
-// ============================================================
 function Footer() {
   return (
     <footer className="footer">
       <span>© 2026 Guilherme Bertanha · Uberlândia MG · UTC-3</span>
-      <span className="footer__sig">
-        <b>FRITG-CONSOLE</b> · fw=3.15.0 · uptime: ∞
-      </span>
+      <span className="footer__sig"><b>FRITG-CONSOLE</b> · fw=3.15.0 · uptime: &#8734;</span>
     </footer>
   );
 }
 
-// ============================================================
-// SCROLL SPY
-// ============================================================
 function useScrollSpy(ids) {
   const [active, setActive] = useState(ids[0]);
-  useEffect(() => {
-    const handler = () => {
-      const y = window.scrollY + 160;
-      let cur = ids[0];
-      for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el && el.offsetTop <= y) cur = id;
-      }
+  useEffect(()=>{
+    const handler=()=>{
+      const y=window.scrollY+160;let cur=ids[0];
+      for(const id of ids){const el=document.getElementById(id);if(el&&el.offsetTop<=y)cur=id;}
       setActive(cur);
     };
-    handler();
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
-  }, [ids.join(',')]);
+    handler();window.addEventListener('scroll',handler,{passive:true});return()=>window.removeEventListener('scroll',handler);
+  },[ids.join(',')]);
   return active;
 }
 
-// ============================================================
-// APP
-// ============================================================
 function App() {
-  const active = useScrollSpy(['boot', 'about', 'stack', 'projects', 'experience', 'contact']);
+  const [lang, setLang] = useState('pt');
+  const ids = ['boot','about','stack','education','projects','experience','contact'];
+  const active = useScrollSpy(ids);
   return (
     <>
-      <Topbar active={active} />
+      <Topbar active={active} lang={lang} setLang={setLang} />
       <div className="page">
-        <Hero />
-        <About />
-        <Stack />
-        <Missions />
-        <Experience />
-        <Contact />
+        <Hero lang={lang} />
+        <About lang={lang} />
+        <Stack lang={lang} />
+        <Education lang={lang} />
+        <Missions lang={lang} />
+        <Experience lang={lang} />
+        <Contact lang={lang} />
         <Footer />
       </div>
-      <FloatingTerminal />
+      <FloatingTerminal lang={lang} />
     </>
   );
 }
