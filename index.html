@@ -3,460 +3,979 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guilherme Bertanha — Engenheiro Mecatrônico</title>
-  <meta name="description" content="Engenheiro Mecatrônico — firmware embarcado, robótica humanoide e agentes de IA." />
+  <title>FRITG-CONSOLE · Guilherme Bertanha</title>
+  <meta name="description" content="Firmware R&D Engineer — ESP32, FreeRTOS, ROS2, BLE mesh, CAN FD. EDROM · Terasite Tecnologia · UFU." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* =================================================================
-       TOKENS
-       ================================================================= */
+    /* =========================================================
+       FRITG-CONSOLE · TOKENS
+       ========================================================= */
     :root {
-      --bg: #0a0a0a;
-      --bg-elev: #111111;
-      --bg-card: #141414;
-      --line: #1f1f1f;
-      --line-strong: #2a2a2a;
-      --fg: #e8e6e1;
-      --fg-dim: #8a8780;
-      --fg-faint: #4a4844;
-      --accent: #10b981;
-      --accent-dim: #059669;
-      --accent-bright: #34d399;
-      --warn: #ffb84d;
-      --ok: #6dd58c;
-      --info: #6da6ff;
-      --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-      --sans: 'Space Grotesk', system-ui, sans-serif;
+      --bg: #050a0e;
+      --bg-elev: #091420;
+      --bg-card: #0d1d2e;
+      --bg-hover: #112336;
+
+      --line: #0f2a40;
+      --line-strong: #1a3f5c;
+      --line-accent: #0d4f6e;
+
+      --fg: #c8d8e8;
+      --fg-dim: #5a7a90;
+      --fg-faint: #2a4a60;
+
+      --accent: #f0b429;
+      --accent-bright: #f8c94a;
+      --accent-dim: #b8861c;
+      --accent-glow: rgba(240, 180, 41, 0.15);
+
+      --ok: #4ade80;
+      --warn: #fb923c;
+      --err: #f87171;
+      --info: #38bdf8;
+
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      --sans: 'Inter', system-ui, sans-serif;
     }
 
-    /* =================================================================
-       RESET
-       ================================================================= */
+    /* =========================================================
+       RESET / BASE
+       ========================================================= */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
+    html { scroll-behavior: smooth; }
+    body {
       background: var(--bg);
       color: var(--fg);
-      font-family: var(--sans);
-      font-size: 16px;
-      line-height: 1.5;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
     }
-    body { overflow-x: hidden; }
-    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+    /* Phosphor screen scanlines */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.06) 3px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+    /* Subtle vignette + amber top glow */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(240,180,41,0.05), transparent 60%),
+        radial-gradient(ellipse 90% 60% at 50% 110%, rgba(0,0,0,0.55), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
     a { color: inherit; text-decoration: none; }
-    html { scroll-behavior: smooth; }
+    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+    ::selection { background: var(--accent); color: #050a0e; }
 
-    /* =================================================================
-       TYPE UTILITIES
-       ================================================================= */
-    .mono { font-family: var(--mono); }
-    .dim { color: var(--fg-dim); }
-    .faint { color: var(--fg-faint); }
-    .accent { color: var(--accent); }
-    .upper { text-transform: uppercase; letter-spacing: 0.08em; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--line-strong); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--line-accent); }
 
-    /* =================================================================
-       APP LAYOUT
-       ================================================================= */
-    .app { max-width: 1440px; margin: 0 auto; padding: 0 32px; }
-    @media (max-width: 720px) { .app { padding: 0 16px; } }
+    .page {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 640px) { .page { padding: 0 16px; } }
 
-    /* =================================================================
-       TOPBAR
-       ================================================================= */
-    .topbar {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 32px;
+    section {
+      padding: 72px 0;
       border-bottom: 1px solid var(--line);
-      background: rgba(10,10,10,0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      scroll-margin-top: 90px;
+    }
+    section:last-of-type { border-bottom: none; }
+
+    /* =========================================================
+       TOPBAR
+       ========================================================= */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5, 10, 14, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line-strong);
+      padding: 0 24px;
       font-family: var(--mono);
       font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    .topbar__prompt {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 0 6px;
+      color: var(--fg-dim);
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+    .topbar__prompt-tag { color: var(--accent); font-weight: 600; }
+    .topbar__prompt-path { color: var(--info); }
+    .topbar__time { margin-left: auto; color: var(--fg-faint); }
+    .topbar__nav {
+      display: flex;
+      padding: 4px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .topbar__nav::-webkit-scrollbar { display: none; }
+    .topbar__nav a {
+      padding: 5px 14px;
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
+      color: var(--fg-dim);
+      border-right: 1px solid var(--line);
+      transition: color 150ms, background 150ms;
+      white-space: nowrap;
     }
-    .topbar__left, .topbar__right { display: flex; align-items: center; gap: 16px; }
-    .topbar__sig { display: flex; align-items: center; gap: 10px; color: var(--fg); }
-    .topbar__dot {
-      width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
-      box-shadow: 0 0 0 3px rgba(16,185,129,0.18);
-      animation: pulse 2.4s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
-      50%      { box-shadow: 0 0 0 6px rgba(16,185,129,0.05); }
-    }
-    .topbar__time { color: var(--fg-dim); font-family: var(--mono); font-size: 10px; }
-    .topbar__nav { display: flex; gap: 18px; color: var(--fg-dim); }
-    .topbar__nav a { transition: color 160ms ease; position: relative; }
-    .topbar__nav a:hover { color: var(--fg); }
-    .topbar__nav a.is-active { color: var(--accent); }
-    @media (max-width: 720px) {
-      .topbar { padding: 14px 16px; }
-      .topbar__nav { display: none; }
+    .topbar__nav a:first-child { border-left: 1px solid var(--line); }
+    .topbar__nav a:hover { color: var(--fg); background: rgba(240,180,41,0.04); }
+    .topbar__nav a.is-active { color: var(--accent); background: var(--accent-glow); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 0 16px; }
+      .topbar__prompt-path { display: none; }
     }
 
-    /* =================================================================
-       SECTION SCAFFOLD
-       ================================================================= */
-    section { padding: 80px 0; border-bottom: 1px solid var(--line); position: relative; scroll-margin-top: 72px; }
-    .section__head {
-      display: flex; align-items: baseline; justify-content: space-between;
-      gap: 24px;
-      margin-bottom: 36px;
-      border-bottom: 1px dashed var(--line-strong);
-      padding-bottom: 16px;
-    }
-    .section__title { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
-    .section__id {
-      font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
-      letter-spacing: 0.14em; text-transform: uppercase;
-    }
-
-    /* =================================================================
+    /* =========================================================
        BUTTONS
-       ================================================================= */
+       ========================================================= */
     .btn {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 12px 18px;
-      border: 1px solid var(--line-strong); border-radius: 2px;
-      font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--fg);
-      transition: all 0.18s ease;
-      background: transparent;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid var(--line-strong);
+      font-family: var(--mono); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--fg); background: transparent;
+      transition: all 0.15s ease;
+      cursor: pointer;
     }
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn--primary { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
-    .btn--primary:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #0a0a0a; }
-    .btn__arrow { font-family: var(--mono); font-size: 13px; transition: transform 0.18s ease; }
-    .btn:hover .btn__arrow { transform: translateX(3px); }
+    .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+    .btn--primary {
+      background: var(--accent); border-color: var(--accent); color: #050a0e; font-weight: 600;
+    }
+    .btn--primary:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #050a0e; }
+    .btn .arr { transition: transform 0.15s ease; }
+    .btn:hover .arr { transform: translateX(3px); }
 
-    /* =================================================================
-       HERO
-       ================================================================= */
-    .hero { padding: 56px 0 80px; border-bottom: 1px solid var(--line); }
-    .hero__grid {
-      display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: stretch;
+    /* =========================================================
+       HERO / BOOT
+       ========================================================= */
+    .boot {
+      min-height: 90svh;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 56px 0 40px;
+      position: relative;
     }
-    @media (max-width: 920px) { .hero__grid { grid-template-columns: 1fr; } }
-    .hero__left { display: flex; flex-direction: column; justify-content: space-between; gap: 32px; min-width: 0; }
-    .hero__right { min-width: 0; display: flex; }
-    .hero__right > * { flex: 1; min-width: 0; }
-    .hero__greet {
-      display: flex; align-items: center; gap: 12px;
-      font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
-      text-transform: uppercase; letter-spacing: 0.14em;
-    }
-    .hero__greet-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-      animation: blink 1.5s steps(2) infinite;
-    }
-    .hero__name {
-      font-size: clamp(48px, 7.2vw, 96px);
-      line-height: 0.92; font-weight: 600; letter-spacing: -0.035em;
-      text-wrap: balance;
-    }
-    .hero__name em { font-style: normal; color: var(--accent); }
-    .hero__role { margin-top: 24px; font-size: 18px; color: var(--fg-dim); max-width: 480px; text-wrap: pretty; }
-    .hero__role strong { color: var(--fg); font-weight: 500; }
-    .hero__cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
-    .hero__meta {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-      padding-top: 24px; border-top: 1px dashed var(--line-strong);
-    }
-    .hero__meta-cell { display: flex; flex-direction: column; gap: 6px; }
-    .hero__meta-label { font-family: var(--mono); font-size: 9px; color: var(--fg-faint); text-transform: uppercase; letter-spacing: 0.16em; }
-    .hero__meta-value { font-family: var(--mono); font-size: 12px; color: var(--fg); }
-
-    /* =================================================================
-       TELEMETRY PANEL
-       ================================================================= */
-    .telemetry {
+    .boot__console {
       background: var(--bg-elev);
       border: 1px solid var(--line-strong);
-      border-radius: 2px;
-      padding: 16px;
-      display: flex; flex-direction: column; gap: 12px;
-      min-height: 460px; min-width: 0;
+      padding: 36px 24px 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      position: relative;
+      min-height: 320px;
+    }
+    .boot__console::before {
+      content: 'SERIAL MONITOR — 115200 BAUD — FRITG01LTE';
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 7px 16px;
+      background: var(--line-strong);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--fg-dim);
+      border-bottom: 1px solid var(--line-strong);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .boot__console::after {
+      content: '● ● ●';
+      position: absolute; top: 4px; right: 12px;
+      color: var(--fg-faint);
+      font-size: 9px;
+      letter-spacing: 4px;
+    }
+    .boot__line {
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .boot__line.ok { color: var(--ok); }
+    .boot__line.warn { color: var(--warn); }
+    .boot__line.accent { color: var(--accent); }
+    .boot__line.dim { color: var(--fg-dim); }
+    .boot__line.info { color: var(--info); }
+    .boot__cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--accent);
+      animation: blink-block 0.8s steps(2) infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes blink-block { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .boot__hero {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .boot__hero.is-visible { opacity: 1; transform: none; }
+
+    .boot__name {
+      font-family: var(--mono);
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      color: var(--fg);
+      margin-bottom: 20px;
+    }
+    .boot__name em { font-style: normal; color: var(--accent); }
+    .boot__cursor-inline {
+      display: inline-block;
+      width: 0.5em; height: 0.8em;
+      background: var(--accent);
+      vertical-align: -0.05em;
+      margin-left: 4px;
+      animation: blink-block 0.8s steps(2) infinite;
+    }
+
+    .boot__role {
+      font-size: 14.5px;
+      color: var(--fg-dim);
+      max-width: 600px;
+      margin-bottom: 28px;
+      font-family: var(--sans);
+      line-height: 1.65;
+    }
+    .boot__role strong { color: var(--fg); font-weight: 500; }
+
+    .boot__meta {
+      display: inline-flex;
+      border: 1px solid var(--line-strong);
+      background: var(--bg-elev);
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .boot__meta-cell {
+      padding: 10px 20px;
+      border-right: 1px solid var(--line-strong);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .boot__meta-cell:last-child { border-right: none; }
+    .boot__meta-label {
+      font-size: 9px; color: var(--fg-faint);
+      text-transform: uppercase; letter-spacing: 0.18em;
+    }
+    .boot__meta-value { font-size: 12px; color: var(--fg); }
+
+    .boot__cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* =========================================================
+       SECTION HEAD (terminal cmd style)
+       ========================================================= */
+    .sec-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line-strong);
+      font-family: var(--mono);
+      flex-wrap: wrap;
+    }
+    .sec-head__caret { color: var(--accent); font-weight: 700; font-size: 14px; }
+    .sec-head__cmd {
+      color: var(--info); font-size: 12px; letter-spacing: 0.04em;
+    }
+    .sec-head__rule { flex: 1; height: 1px; background: var(--line); min-width: 30px; }
+    .sec-head__label {
+      font-size: 22px; font-weight: 700; color: var(--fg);
+      letter-spacing: -0.015em; font-family: var(--mono);
+    }
+    @media (max-width: 480px) {
+      .sec-head__rule { display: none; }
+    }
+
+    /* =========================================================
+       ABOUT — PROFILE DUMP
+       ========================================================= */
+    .profile-dump {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-strong);
+      font-family: var(--mono);
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    .profile-dump__header {
+      padding: 8px 20px;
+      background: var(--line-strong);
+      color: var(--fg-dim);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--line-strong);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .profile-dump__header::before {
+      content: '$';
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .profile-dump__body { padding: 16px 20px; }
+    .profile-dump__row {
+      display: grid; grid-template-columns: 140px 1fr;
+      padding: 6px 0;
+      border-bottom: 1px dotted var(--line);
+      line-height: 1.5;
+      gap: 8px;
+    }
+    .profile-dump__row:last-child { border-bottom: none; }
+    .profile-dump__key { color: var(--fg-faint); }
+    .profile-dump__key::before { content: '· '; opacity: 0.6; }
+    .profile-dump__val { color: var(--fg); }
+    .profile-dump__val .hl { color: var(--accent); }
+
+    .bio-grid {
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px;
+    }
+    @media (max-width: 720px) { .bio-grid { grid-template-columns: 1fr; } }
+    .bio-text p {
+      font-family: var(--sans); font-size: 15px; color: var(--fg-dim);
+      line-height: 1.7; margin-bottom: 14px; text-wrap: pretty;
+    }
+    .bio-text p:first-child { color: var(--fg); }
+    .bio-text p strong { color: var(--fg); font-weight: 500; }
+
+    .counters {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      background: var(--line-strong); border: 1px solid var(--line-strong);
+      align-content: start;
+    }
+    .counter {
+      background: var(--bg-card); padding: 18px;
+      display: flex; flex-direction: column; gap: 6px;
+      position: relative;
+    }
+    .counter::after {
+      content: ''; position: absolute; top: 0; right: 0;
+      width: 10px; height: 10px;
+      border-top: 1px solid var(--accent);
+      border-right: 1px solid var(--accent);
+    }
+    .counter__val {
+      font-family: var(--mono); font-size: 32px; font-weight: 700;
+      color: var(--accent); letter-spacing: -0.025em; line-height: 1;
+    }
+    .counter__label {
+      font-size: 9.5px; color: var(--fg-dim);
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+
+    /* =========================================================
+       STACK — SIGNAL BARS
+       ========================================================= */
+    .stack-section { display: flex; flex-direction: column; gap: 16px; }
+    .stack-reg {
+      border: 1px solid var(--line-strong);
+      background: var(--bg-elev);
+      overflow: hidden;
+    }
+    .stack-reg__head {
+      padding: 9px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--line-strong);
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
+      color: var(--fg-dim);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .stack-reg__head .reg-id { color: var(--accent); font-weight: 700; }
+    .stack-reg__head .reg-count {
+      margin-left: auto; color: var(--fg-faint); font-size: 9.5px;
+    }
+    .stack-reg__items { padding: 0; }
+    .stack-item {
+      display: grid; grid-template-columns: 200px 1fr 80px;
+      align-items: center; gap: 16px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      transition: background 150ms;
+    }
+    .stack-item:last-child { border-bottom: none; }
+    .stack-item:hover { background: var(--bg-hover); }
+    .stack-item__name { font-size: 12px; color: var(--fg); font-weight: 500; }
+    .stack-item__bar {
+      height: 6px; background: var(--line-strong);
       position: relative; overflow: hidden;
     }
-    .telemetry::before {
+    .stack-item__bar::before {
       content: ''; position: absolute; inset: 0;
-      background-image:
-        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-image: repeating-linear-gradient(90deg,
+        transparent 0, transparent 3px,
+        rgba(0,0,0,0.25) 3px, rgba(0,0,0,0.25) 4px);
+      z-index: 2;
       pointer-events: none;
     }
-    .telemetry__head {
-      display: flex; align-items: center; justify-content: space-between;
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    .stack-item__fill {
+      position: absolute; inset: 0; width: var(--pct);
+      background: linear-gradient(to right, var(--accent-dim), var(--accent));
+      transform-origin: left;
+      animation: bar-in 0.9s cubic-bezier(0.22,1,0.36,1) forwards;
+      transform: scaleX(0);
+      box-shadow: 0 0 6px rgba(240,180,41,0.4);
+    }
+    @keyframes bar-in { to { transform: scaleX(1); } }
+    .stack-item__tag {
+      font-size: 9.5px; color: var(--fg-faint);
+      text-align: right; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 640px) {
+      .stack-item { grid-template-columns: 130px 1fr 60px; gap: 10px; padding: 10px 12px; }
+    }
+
+    /* =========================================================
+       MISSIONS — LS / GIT LOG STYLE
+       ========================================================= */
+    .mission-filters {
+      display: inline-flex;
+      border: 1px solid var(--line-strong);
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .mission-filter {
+      padding: 6px 14px;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
       color: var(--fg-dim);
-      padding-bottom: 10px; border-bottom: 1px solid var(--line);
-      position: relative; z-index: 1;
+      border-right: 1px solid var(--line-strong);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: transparent;
     }
-    .telemetry__head .live { display: flex; align-items: center; gap: 6px; color: var(--ok); }
-    .telemetry__head .live::before {
-      content: ''; width: 6px; height: 6px; background: var(--ok); border-radius: 50%;
-      animation: blink 1s steps(2) infinite;
-    }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .telemetry__viz {
-      flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;
-      position: relative; z-index: 1; min-height: 280px; min-width: 0;
-    }
-    .telemetry__diagram {
-      background: #0d0d0d; border: 1px solid var(--line); position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center; padding: 12px;
-    }
-    .telemetry__readout {
-      display: flex; flex-direction: column; gap: 6px;
-      font-family: var(--mono); font-size: 10px;
-      background: #0d0d0d; border: 1px solid var(--line); padding: 12px;
-      overflow: hidden; min-width: 0;
-    }
-    .telemetry__readout-row {
-      display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
-      color: var(--fg-dim); border-bottom: 1px dotted var(--line); padding-bottom: 4px;
-    }
-    .telemetry__readout-row:last-child { border-bottom: none; }
-    .telemetry__readout-row b { color: var(--fg); font-weight: 500; }
-    .telemetry__readout-row.is-warn b { color: var(--warn); }
-    .telemetry__readout-row.is-ok b { color: var(--ok); }
-    .telemetry__feed {
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-      position: relative; z-index: 1;
-      font-family: var(--mono); font-size: 10px; color: var(--fg-dim);
-      display: flex; gap: 16px; white-space: nowrap;
-      overflow: hidden; min-width: 0; max-width: 100%;
-    }
-    .telemetry__feed-track {
-      display: flex; gap: 24px; width: max-content;
-      animation: scroll-feed 28s linear infinite;
-    }
-    @keyframes scroll-feed { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    .telemetry__feed span b { color: var(--accent); }
+    .mission-filter:last-child { border-right: none; }
+    .mission-filter.is-active { background: var(--accent); color: #050a0e; font-weight: 700; }
+    .mission-filter:hover:not(.is-active) { background: var(--bg-hover); color: var(--fg); }
 
-    /* =================================================================
-       ABOUT
-       ================================================================= */
-    .about { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; }
-    @media (max-width: 920px) { .about { grid-template-columns: 1fr; } }
-    .about__bio p { font-size: 18px; line-height: 1.6; color: var(--fg); margin-bottom: 16px; text-wrap: pretty; }
-    .about__bio p.is-dim { color: var(--fg-dim); font-size: 16px; }
-    .about__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: start; }
-    .stat {
-      border: 1px solid var(--line); padding: 18px;
-      display: flex; flex-direction: column; gap: 8px;
-      background: var(--bg-elev);
-      position: relative; overflow: hidden;
+    .missions__hint {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--fg-faint);
+      margin-bottom: 10px;
+      letter-spacing: 0.04em;
     }
-    .stat::after {
-      content: ''; position: absolute; top: 0; right: 0;
-      width: 14px; height: 14px;
-      border-top: 1px solid var(--accent); border-right: 1px solid var(--accent);
-    }
-    .stat__value { font-family: var(--sans); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; color: var(--fg); line-height: 1; }
-    .stat__label { font-family: var(--mono); font-size: 10px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.12em; }
+    .missions__hint b { color: var(--fg-dim); }
 
-    /* =================================================================
-       SKILLS MOSAIC
-       ================================================================= */
-    .skills__grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-      background: var(--line); border: 1px solid var(--line);
-    }
-    @media (max-width: 920px) { .skills__grid { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 560px) { .skills__grid { grid-template-columns: 1fr; } }
-    .skills__cell {
-      background: var(--bg); padding: 24px;
-      display: flex; flex-direction: column; gap: 14px;
-      min-height: 200px;
-      transition: background 180ms ease;
-    }
-    .skills__cell:hover { background: var(--bg-elev); }
-    .skills__cell-head {
-      display: flex; align-items: center; gap: 8px;
-      font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
-      color: var(--fg-dim);
-      padding-bottom: 12px; border-bottom: 1px dashed var(--line-strong);
-    }
-    .skills__cell-head .ix { color: var(--accent); }
-    .skills__list { display: flex; flex-direction: column; gap: 6px; list-style: none; }
-    .skills__list li {
-      display: flex; justify-content: space-between;
-      font-family: var(--mono); font-size: 12px; color: var(--fg);
-      padding: 4px 0; border-bottom: 1px dotted var(--line);
-    }
-    .skills__list li:last-child { border-bottom: none; }
-    .skills__list li span { color: var(--fg-faint); font-size: 10px; }
-
-    /* =================================================================
-       PROJECTS
-       ================================================================= */
-    .proj__filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
-    .proj__filter {
-      font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
-      padding: 6px 12px;
-      border: 1px solid var(--line-strong); color: var(--fg-dim);
-      background: transparent; border-radius: 2px;
-      cursor: pointer; transition: all 0.15s ease;
-    }
-    .proj__filter:hover { color: var(--fg); border-color: var(--fg-dim); }
-    .proj__filter.is-active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-    .proj__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    @media (max-width: 920px) { .proj__grid { grid-template-columns: 1fr; } }
-    .proj__card {
-      border: 1px solid var(--line-strong); background: var(--bg-elev);
-      padding: 0;
+    .missions {
       display: flex; flex-direction: column;
-      position: relative; overflow: hidden;
-      transition: border-color 0.18s ease, transform 0.18s ease;
-      opacity: 0; transform: translateY(8px);
+      border: 1px solid var(--line-strong);
+      background: var(--bg-elev);
     }
-    .proj__card.is-visible { opacity: 1; transform: none; transition: opacity 600ms ease, transform 600ms ease, border-color 0.18s ease; }
-    .proj__card:hover { border-color: var(--accent); }
-    .proj__card-head {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 18px; border-bottom: 1px solid var(--line);
-      font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    .mission {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto auto;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--line);
+      transition: background 150ms;
+    }
+    .mission:last-child { border-bottom: none; }
+    .mission:hover { background: var(--bg-hover); }
+    .mission.is-open { background: var(--bg-card); }
+    .mission__perms {
+      padding: 12px 14px;
+      font-family: var(--mono); font-size: 10.5px;
+      color: var(--fg-faint);
+      letter-spacing: 0.04em;
+      border-right: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .mission__id {
+      padding: 12px 14px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--accent); font-weight: 700; letter-spacing: 0.06em;
+      border-right: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .mission__main {
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+      min-width: 0;
+    }
+    .mission__title {
+      font-size: 13px; color: var(--fg); font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mission__status {
+      padding: 12px 14px;
+      font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.14em;
+      border-right: 1px solid var(--line);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .mission__status.ok { color: var(--ok); }
+    .mission__status.warn { color: var(--warn); }
+    .mission__caret {
+      padding: 12px 14px;
+      color: var(--fg-faint); font-size: 11px;
+      transition: transform 200ms ease;
+      cursor: pointer;
+    }
+    .mission.is-open .mission__caret { transform: rotate(90deg); color: var(--accent); }
+
+    /* Trigger as full-row click */
+    .mission__trigger {
+      display: contents;
+      cursor: pointer;
+    }
+
+    .mission__expand {
+      grid-column: 1 / -1;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1);
+      border-top: 1px solid transparent;
+    }
+    .mission.is-open .mission__expand {
+      max-height: 420px;
+      border-top: 1px solid var(--line);
+    }
+    .mission__detail {
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 720px) { .mission__detail { grid-template-columns: 1fr; } }
+    .mission__detail-text {
+      background: var(--bg);
+      border-left: 2px solid var(--accent);
+      padding: 14px 16px;
+      font-family: var(--sans);
+      font-size: 13.5px;
       color: var(--fg-dim);
+      line-height: 1.65;
     }
-    .proj__id { color: var(--accent); }
-    .proj__status { display: flex; align-items: center; gap: 6px; }
-    .proj__status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
-    .proj__status.is-ongoing::before { background: var(--warn); }
-    .proj__status.is-completed { color: var(--ok); }
-    .proj__status.is-ongoing { color: var(--warn); }
-    .proj__image {
-      height: 160px; background: #0d0d0d; border-bottom: 1px solid var(--line);
-      position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .proj__image-grid {
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-    .proj__image-tag {
-      position: absolute; bottom: 8px; left: 12px;
-      font-family: var(--mono); font-size: 9px; color: var(--fg-faint);
-      text-transform: uppercase; letter-spacing: 0.14em;
-    }
-    .proj__image-art {
-      position: relative; z-index: 1; opacity: 0.75;
-      transition: opacity 240ms ease;
-    }
-    .proj__card:hover .proj__image-art { opacity: 1; }
-    .proj__body { padding: 18px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
-    .proj__title { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; text-wrap: balance; }
-    .proj__desc { font-size: 13.5px; color: var(--fg-dim); line-height: 1.55; text-wrap: pretty; }
-    .proj__chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
-    .chip {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 7px; background: #0d0d0d; border: 1px solid var(--line-strong); color: var(--fg-dim);
-    }
-    .proj__role {
+    .mission__detail-role {
       font-family: var(--mono); font-size: 10px; color: var(--accent);
       letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 8px; display: block;
     }
-
-    /* =================================================================
-       EXPERIENCE TIMELINE
-       ================================================================= */
-    .xp__list { display: flex; flex-direction: column; gap: 0; border-left: 1px solid var(--line-strong); margin-left: 12px; }
-    .xp__entry { position: relative; padding: 24px 0 24px 36px; border-bottom: 1px dashed var(--line); }
-    .xp__entry:last-child { border-bottom: none; }
-    .xp__entry::before {
-      content: ''; position: absolute; left: -6px; top: 32px;
-      width: 11px; height: 11px;
-      background: var(--bg); border: 2px solid var(--accent); border-radius: 50%;
+    .mission__chips {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      margin-top: 10px;
     }
-    .xp__entry.is-current::before {
-      background: var(--accent); box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
-      animation: pulse 2.4s ease-in-out infinite;
+    .chip {
+      font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 2px 7px;
+      background: var(--bg);
+      border: 1px solid var(--line-strong);
+      color: var(--fg-dim);
+      font-family: var(--mono);
     }
-    .xp__row { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 720px) { .xp__row { grid-template-columns: 1fr; gap: 8px; } }
-    .xp__when {
+    .mission__link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 12px;
       font-family: var(--mono); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--info);
+      padding: 6px 10px;
+      border: 1px solid var(--info);
+      transition: all 0.15s ease;
+    }
+    .mission__link:hover { background: var(--info); color: #050a0e; }
+    .mission__detail-side {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--fg-faint);
+      letter-spacing: 0.08em;
+      min-width: 160px;
+    }
+    .mission__detail-side dt {
+      text-transform: uppercase;
+      color: var(--fg-faint);
+      margin-bottom: 2px;
+    }
+    .mission__detail-side dd {
+      color: var(--fg-dim);
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .mission { grid-template-columns: auto 1fr auto; }
+      .mission__perms { display: none; }
+      .mission__status { padding: 12px 10px; }
+    }
+
+    /* =========================================================
+       EXPERIENCE — GIT LOG
+       ========================================================= */
+    .gitlog__head {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--fg-dim);
+      padding: 8px 14px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line-strong);
+      border-bottom: none;
+      letter-spacing: 0.04em;
+    }
+    .gitlog__head b { color: var(--accent); }
+    .gitlog {
+      font-family: var(--mono);
+      border: 1px solid var(--line-strong);
+      background: var(--bg-elev);
+      padding: 4px 0;
+    }
+    .gitlog__entry {
+      display: flex;
+      align-items: stretch;
+      padding: 0;
+    }
+    .gitlog__gutter {
+      display: flex; flex-direction: column;
+      align-items: center;
+      width: 56px;
+      flex-shrink: 0;
+      padding: 0 16px;
+    }
+    .gitlog__dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--bg);
+      margin-top: 20px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .gitlog__dot.is-current {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+      animation: pulse-amber 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse-amber {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(240,180,41,0.15); }
+      50% { box-shadow: 0 0 0 7px rgba(240,180,41,0.05); }
+    }
+    .gitlog__line {
+      flex: 1;
+      width: 1px;
+      background: var(--line-strong);
+      margin: 0 auto;
+      min-height: 14px;
+    }
+    .gitlog__entry:last-child .gitlog__line { display: none; }
+    .gitlog__content {
+      flex: 1;
+      padding: 14px 16px 24px 0;
+      min-width: 0;
+    }
+    .gitlog__meta {
+      font-size: 10.5px;
+      color: var(--fg-dim);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .gitlog__hash { color: var(--accent); }
+    .gitlog__when { color: var(--info); }
+    .gitlog__subject {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      font-family: var(--mono);
+    }
+    .gitlog__where {
+      font-size: 10.5px;
+      color: var(--fg-dim);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .gitlog__where b { color: var(--fg); }
+    .gitlog__notes {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .gitlog__notes li {
+      font-family: var(--sans);
+      font-size: 13.5px;
+      color: var(--fg-dim);
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .gitlog__notes li::before {
+      content: '├';
+      position: absolute; left: 0;
+      color: var(--fg-faint);
+      font-family: var(--mono);
+    }
+    .gitlog__notes li:last-child::before { content: '└'; }
+
+    @media (max-width: 640px) {
+      .gitlog__gutter { width: 36px; padding: 0 10px; }
+    }
+
+    /* =========================================================
+       CONTACT — PING
+       ========================================================= */
+    .ping-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 720px) { .ping-section { grid-template-columns: 1fr; } }
+
+    .ping-output {
+      background: var(--bg-elev);
+      border: 1px solid var(--line-strong);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .ping-output__bar {
+      padding: 7px 16px;
+      background: var(--line-strong);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--fg-dim);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .ping-output__body { padding: 14px 18px; }
+    .ping-output__intro {
+      color: var(--fg-dim);
+      margin-bottom: 12px;
+      line-height: 1.7;
+    }
+    .ping-output__intro b { color: var(--ok); }
+    .ping-output__intro .info { color: var(--info); }
+    .ping-row {
+      display: grid;
+      grid-template-columns: 88px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .ping-row:last-child { border-bottom: none; }
+    .ping-row__key {
+      color: var(--fg-faint);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .ping-row__val { color: var(--fg); font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .ping-row__action {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--info);
+      cursor: pointer;
+      padding: 3px 8px;
+      border: 1px solid var(--info);
+      background: transparent;
+      transition: all 150ms ease;
+      font-family: var(--mono);
+    }
+    .ping-row__action:hover { background: var(--info); color: #050a0e; }
+    .ping-row__action.is-copied { color: var(--ok); border-color: var(--ok); }
+
+    .contact-form {
+      display: flex; flex-direction: column; gap: 14px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line-strong);
+      padding: 18px;
+    }
+    .contact-form__header {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--fg-dim);
+      padding-bottom: 12px;
+      border-bottom: 1px dashed var(--line-strong);
+      margin-bottom: 4px;
+    }
+    .contact-form__header b { color: var(--accent); }
+    .contact-form label {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--fg-faint);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .contact-form input, .contact-form textarea {
+      background: var(--bg);
+      border: 1px solid var(--line-strong);
+      color: var(--fg);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 150ms;
+    }
+    .contact-form input:focus, .contact-form textarea:focus { border-color: var(--accent); }
+    .contact-form textarea { min-height: 110px; resize: vertical; }
+    .contact-form__submit {
+      align-self: flex-start;
+      padding: 10px 22px;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #050a0e;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.14em;
-      color: var(--fg-dim); padding-top: 6px;
+      cursor: pointer;
+      transition: background 150ms;
     }
-    .xp__when b { display: block; color: var(--accent); font-size: 11px; margin-bottom: 4px; }
-    .xp__body { display: flex; flex-direction: column; gap: 8px; }
-    .xp__role { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
-    .xp__where { font-family: var(--mono); font-size: 11px; color: var(--fg-dim); letter-spacing: 0.08em; }
-    .xp__where b { color: var(--fg); }
-    .xp__notes { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; font-size: 14px; color: var(--fg-dim); line-height: 1.55; }
-    .xp__notes li { padding-left: 16px; position: relative; }
-    .xp__notes li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-family: var(--mono); }
+    .contact-form__submit:hover { background: var(--accent-bright); border-color: var(--accent-bright); }
+    .contact-form__hint {
+      font-size: 10px;
+      color: var(--fg-faint);
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+    }
+    .contact-form__status {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ok);
+      padding: 8px 12px;
+      background: rgba(74,222,128,0.06);
+      border: 1px solid rgba(74,222,128,0.3);
+    }
 
-    /* =================================================================
-       CONTACT
-       ================================================================= */
-    .contact { padding: 100px 0; }
-    .contact__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: end; }
-    @media (max-width: 720px) { .contact__grid { grid-template-columns: 1fr; } }
-    .contact__lead { font-size: clamp(36px, 5vw, 72px); line-height: 1; font-weight: 600; letter-spacing: -0.03em; text-wrap: balance; }
-    .contact__lead em { font-style: normal; color: var(--accent); }
-    .contact__sub { margin-top: 18px; color: var(--fg-dim); font-size: 15px; max-width: 460px; line-height: 1.55; }
-    .contact__cta { display: flex; flex-direction: column; gap: 12px; }
-    .contact__row {
+    /* =========================================================
+       FLOATING TERMINAL
+       ========================================================= */
+    .terminal-btn {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      width: 48px; height: 48px;
+      background: var(--bg-elev);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--mono); font-size: 16px; font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 150ms;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .terminal-btn:hover { background: var(--accent); color: #050a0e; }
+    .terminal-float {
+      position: fixed; bottom: 84px; right: 24px; z-index: 200;
+      width: 440px; max-width: calc(100vw - 48px);
+      max-height: 70vh;
+      background: var(--bg-elev);
+      border: 1px solid var(--accent);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 40px rgba(240,180,41,0.08);
+      display: flex; flex-direction: column;
+      opacity: 0; transform: translateY(8px) scale(0.98);
+      transition: all 200ms cubic-bezier(0.22,1,0.36,1);
+      pointer-events: none;
+    }
+    .terminal-float.is-open { opacity: 1; transform: none; pointer-events: all; }
+    .terminal-float__bar {
+      padding: 8px 14px;
+      background: var(--accent); color: #050a0e;
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.14em;
       display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 16px;
-      border: 1px solid var(--line-strong); background: var(--bg-elev);
-      font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
-      transition: all 0.18s ease;
     }
-    .contact__row:hover { border-color: var(--accent); color: var(--accent); }
-    .contact__row .lab { color: var(--fg-faint); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; }
-    .contact__row .arr { color: var(--fg-faint); transition: transform 0.18s ease, color 0.18s ease; }
-    .contact__row:hover .arr { color: var(--accent); transform: translateX(3px); }
+    .terminal-float__close {
+      background: none; border: none; color: #050a0e;
+      cursor: pointer; font-size: 14px; line-height: 1;
+      padding: 0 4px;
+    }
+    .terminal-float__history {
+      padding: 12px 14px;
+      font-family: var(--mono); font-size: 11px; line-height: 1.7;
+      color: var(--fg-dim);
+      flex: 1;
+      overflow-y: auto;
+      min-height: 140px;
+    }
+    .terminal-float__line { white-space: pre-wrap; word-break: break-word; }
+    .terminal-float__line.user { color: var(--accent); }
+    .terminal-float__line.ok { color: var(--ok); }
+    .terminal-float__line.err { color: var(--err); }
+    .terminal-float__line.info { color: var(--info); }
+    .terminal-float__input-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--line-strong);
+      background: var(--bg);
+    }
+    .terminal-float__prompt-sym {
+      color: var(--accent); font-family: var(--mono); font-size: 13px; font-weight: 700;
+    }
+    .terminal-float__input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--fg); font-family: var(--mono); font-size: 12px;
+      caret-color: var(--accent);
+    }
 
-    /* =================================================================
+    @media (max-width: 480px) {
+      .terminal-btn { bottom: 16px; right: 16px; }
+      .terminal-float { right: 16px; left: 16px; bottom: 76px; width: auto; max-width: none; }
+    }
+
+    /* =========================================================
        FOOTER
-       ================================================================= */
+       ========================================================= */
     .footer {
+      padding: 28px 0;
+      font-family: var(--mono); font-size: 10.5px;
+      color: var(--fg-faint);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--line);
       display: flex; justify-content: space-between; align-items: center;
-      padding: 24px 0 32px;
-      font-family: var(--mono); font-size: 10px; color: var(--fg-faint);
-      text-transform: uppercase; letter-spacing: 0.14em;
       flex-wrap: wrap; gap: 12px;
     }
-    .footer__cursor { color: var(--accent); animation: blink 1s steps(2) infinite; }
-
-    /* =================================================================
-       SCROLLBAR & SELECTION
-       ================================================================= */
-    ::-webkit-scrollbar { width: 10px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--line-strong); border: 2px solid var(--bg); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
-    ::selection { background: var(--accent); color: #0a0a0a; }
+    .footer__sig { color: var(--fg-dim); }
+    .footer__sig b { color: var(--accent); }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-
   <script type="text/babel" data-presets="react">
 // ============================================================
-// Guilherme Bertanha — Portfolio (v2)
-// Single-file React app · Pedro-inspired design system
+// GB.CONSOLE · Portfolio Guilherme Bertanha (v4 — versão acessível)
+// Mesmo visual da v3, linguagem para qualquer pessoa entender
 // ============================================================
-const { useState, useEffect, useRef, useMemo } = React;
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 // ============================================================
 // CONTENT
@@ -464,195 +983,150 @@ const { useState, useEffect, useRef, useMemo } = React;
 const CONTENT = {
   meta: {
     name: 'Guilherme Bertanha',
-    handle: 'GB',
-    location: 'Uberlândia, MG · BR',
+    handle: '@guibertanha',
+    location: 'Uberlândia · MG · BR',
     email: 'guilhermebertanha0@gmail.com',
-    links: {
-      github: 'https://github.com/guibertanha',
-      linkedin: 'https://linkedin.com/in/guilhermebertanhaconstante',
-    },
+    github: 'https://github.com/guibertanha',
+    linkedin: 'https://linkedin.com/in/guilhermebertanhaconstante',
   },
-
-  hero: {
-    greet: 'SISTEMA ONLINE · PORTFOLIO 2026',
-    role: (
-      <>
-        Estudante de Eng. Mecatrônica na <strong>UFU</strong>. Presidente da <strong>EDROM</strong> —
-        robótica humanoide para RoboCup. Engenheiro de P&amp;D na <strong>Terasite</strong> —
-        firmware IoT industrial para máquinas pesadas. Agentes de IA com Claude API.
-      </>
-    ),
-    meta: [
-      ['LOCAL',  'Uberlândia · MG'],
-      ['STATUS', 'Disponível · 2026'],
-      ['STACK',  'ESP32 · ROS2 · Python'],
-    ],
-  },
-
   about: {
-    title: 'Sobre',
-    id: '§ 01 / IDENTIFICAÇÃO',
+    profile: [
+      ['operator',      'Guilherme Bertanha <guibertanha>'],
+      ['affiliation',   'UFU · Eng. Mecatrônica · class of 2023'],
+      ['role.primary',  'Firmware R&D Engineer · Terasite Tecnologia'],
+      ['role.secondary','President & Software Lead · EDROM'],
+      ['coordinates',   '-18.9186 S, -48.2772 W · UTC-3 (BRT)'],
+      ['architecture',  'bare-metal C++ -> FreeRTOS -> ROS2 -> LLM agents'],
+      ['open_to',       'embedded collab · robotics R&D · AI systems'],
+    ],
     bio: [
-      'Trabalho em problemas que cruzam domínios — do sensor ao dado, do dado à decisão.',
-      'Na Terasite desenvolvo o firmware do gateway IoT industrial Frotall (FRITG01LTE): mesh BLE com HMAC, criptografia AES dinâmica, CAN bus, LTE/GPRS e OTA via rede mesh. Mais de 30 releases em produção em máquinas pesadas de campo.',
-      'No EDROM lidero como presidente o desenvolvimento do robô humanoide Áurea para a RoboCup/CBR 2025 — controle cinemático, visão computacional e máquina de estados em ROS2.',
+      'Trabalho em sistemas que cruzam camadas — do ISR no chip ao agente de IA que interpreta os dados. Do sensor à decisão.',
+      'Na Terasite: firmware do FRITG01LTE, gateway IoT industrial com mesh BLE (NimBLE), ISO 11898 CAN FD, LTE cat-4, AES-256-GCM e HMAC-SHA256 challenge-response. 30+ releases em campo (IP54, ISO 7637-2).',
+      'No EDROM: locomoção bípede via IK analítica + Jacobian whole-body control, pipeline YOLOv8 em ROS2, sensor fusion a 200 Hz com filtro Madgwick. RoboCup CBR 2025.',
     ],
-    stats: [
-      ['3+',   'Anos · Mecatrônica UFU'],
-      ['30+',  'Releases em produção'],
-      ['2025', 'RoboCup CBR · Áurea'],
-      ['5',    'Linguagens em uso'],
-    ],
-  },
-
-  skills: {
-    title: 'Stack',
-    id: '§ 02 / SISTEMA',
-    groups: [
-      { ix: '01', label: 'Embarcado & IoT', items: [
-        ['C++ / C', 'primária'],
-        ['ESP32 · FreeRTOS', 'produção'],
-        ['BLE · ESP-NOW', 'mesh'],
-        ['CAN Bus · LTE', 'field'],
-        ['AES · HMAC', 'crypto'],
-      ]},
-      { ix: '02', label: 'Robótica', items: [
-        ['ROS2 Humble', 'middleware'],
-        ['Docker', 'deploy'],
-        ['Webots', 'simulação'],
-        ['Visão Computacional', 'OpenCV'],
-        ['Cinemática', 'humanoide'],
-      ]},
-      { ix: '03', label: 'Software & Dados', items: [
-        ['Python', 'análise'],
-        ['Jupyter · Pandas', 'EDA'],
-        ['MATLAB', 'controle'],
-        ['Git · Linux', 'devtools'],
-        ['Scikit-learn', 'ML'],
-      ]},
-      { ix: '04', label: 'Web & Interfaces', items: [
-        ['TypeScript · React', 'frontend'],
-        ['Tailwind · Vite', 'build'],
-        ['Zustand', 'estado'],
-        ['Framer Motion', 'animação'],
-      ]},
-      { ix: '05', label: 'IA & Automação', items: [
-        ['Claude API', 'agentes'],
-        ['OpenAI API', 'LLM'],
-        ['Agentes Autônomos', 'pipelines'],
-      ]},
-      { ix: '06', label: 'CAD & Hardware', items: [
-        ['SolidWorks', 'mecânica'],
-        ['PlatformIO', 'embedded'],
-        ['Arduino IDE', 'protótipo'],
-      ]},
+    counters: [
+      ['30+',  'fw releases · produção'],
+      ['12',   'FreeRTOS tasks · FRITG'],
+      ['200Hz','sensor fusion · EDROM'],
+      ['5',    'linguagens ativas'],
     ],
   },
-
-  projects: {
-    title: 'Projetos',
-    id: '§ 03 / MISSÕES',
-    filters: ['Todos', 'Embedded', 'Robótica', 'Dados', 'Web'],
-    items: [
-      {
-        id: 'M-001', title: 'Frotall Firmware · FRITG01LTE',
-        desc: 'Gateway IoT industrial para máquinas pesadas. Mesh BLE com HMAC, criptografia AES dinâmica, CAN bus, LTE/GPRS, horômetro virtual, OTA via rede mesh. Mais de 30 releases em produção.',
-        role: 'Engenheiro de P&D · Terasite Tecnologia',
-        chips: ['C++', 'ESP32', 'FreeRTOS', 'BLE', 'CAN Bus', 'LTE'],
-        status: 'ongoing', tag: 'IOT/FIRMWARE', cat: 'Embedded', art: 'board',
-      },
-      {
-        id: 'M-002', title: 'EDROM — Robô Áurea',
-        desc: 'Sistema completo de robô humanoide para RoboCup/CBR 2025. Controle cinemático de servos, visão computacional, localização e máquina de estados em ROS2.',
-        role: 'Presidente · EDROM (UFU)',
-        chips: ['C++', 'ROS2', 'Python', 'Docker', 'Webots'],
-        status: 'ongoing', tag: 'PLATFORM/HUMANOID', cat: 'Robótica',
-        link: 'https://github.com/edromufu/edrom_main', art: 'robot',
-      },
-      {
-        id: 'M-003', title: 'Validação RF de Antenas · Terasite',
-        desc: 'Firmware de bancada para testar 5 antenas externas do gateway IoT. State machine com 3 perfis (BURN/WALK/CLOCK), scoring normalizado e relatório HTML gerado automaticamente.',
-        role: 'Engenheiro de P&D · Terasite',
-        chips: ['C++', 'Python', 'HTML', 'ESP32'],
-        status: 'completed', tag: 'RF/VALIDATION', cat: 'Embedded',
-        link: 'https://github.com/guibertanha/estagio-terasite', art: 'antenna',
-      },
-      {
-        id: 'M-004', title: 'RF Field Analysis',
-        desc: 'Pipeline de EDA para validação de antenas Wi-Fi em campo real — vibração, EMI e flutuação de tensão em máquinas pesadas. Dados coletados com SA6 (35–6200 MHz).',
-        role: 'P&D · Terasite Tecnologia',
-        chips: ['Python', 'Jupyter', 'Pandas', 'EDA'],
-        status: 'completed', tag: 'DATA/RF', cat: 'Dados',
-        link: 'https://github.com/guibertanha/rf-field-analysis', art: 'chart',
-      },
-      {
-        id: 'M-005', title: 'firmware-e-poeira',
-        desc: 'Jogo de simulação browser sobre engenharia embarcada. React 19, TypeScript, Zustand para estado global e Framer Motion para animações.',
-        role: 'Projeto pessoal',
-        chips: ['React 19', 'TypeScript', 'Zustand', 'Framer Motion'],
-        status: 'ongoing', tag: 'WEB/GAME', cat: 'Web',
-        link: 'https://github.com/guibertanha/firmware-e-poeira', art: 'web',
-      },
-      {
-        id: 'M-006', title: 'Data Science Study',
-        desc: 'Pipeline de ciência de dados: limpeza de dados, EDA e modelos preditivos de regressão com Scikit-learn.',
-        role: 'Estudo pessoal',
-        chips: ['Python', 'Jupyter', 'Scikit-learn', 'Pandas'],
-        status: 'completed', tag: 'RESEARCH/ML', cat: 'Dados',
-        link: 'https://github.com/guibertanha/data-science-study', art: 'lab',
-      },
-    ],
-  },
-
-  experience: {
-    title: 'Trajetória',
-    id: '§ 04 / LOG DE EXPERIÊNCIA',
-    items: [
-      {
-        when: 'AGO 2024 → AGORA', dur: 'atual',
-        role: 'Presidente & Engenheiro de Software',
-        where: { pre: '', strong: 'EDROM', post: ' · Equipe de Robótica da UFU' },
-        notes: [
-          'Liderança multidisciplinar do time de robótica humanoide para RoboCup/CBR 2025.',
-          'Desenvolvimento de controle de servos, visão computacional e sensor fusion para o robô Áurea.',
-          'Arquitetura do sistema em ROS2 Humble com Docker e simulação no Webots.',
-        ],
-        current: true,
-      },
-      {
-        when: 'MAR 2024 → AGORA', dur: 'atual',
-        role: 'Engenheiro de P&D — Firmware Embarcado',
-        where: { pre: '', strong: 'Terasite Tecnologia', post: ' · Uberlândia' },
-        notes: [
-          'Firmware do gateway IoT industrial Frotall (FRITG01LTE) para máquinas pesadas.',
-          'Comunicação mesh BLE com segurança HMAC, criptografia AES dinâmica e autenticação por token.',
-          'Multi-protocolo: LTE/GPRS, Wi-Fi, ESP-NOW, CAN bus, OTA updates via mesh.',
-          'Bancada de validação RF: state machine C++, análise Python, relatório HTML automático.',
-        ],
-        current: true,
-      },
-      {
-        when: '2024 → AGORA', dur: 'atual',
-        role: 'Desenvolvedor de Agentes de IA',
-        where: { pre: '', strong: 'Projetos Autônomos', post: '' },
-        notes: [
-          'Agentes autônomos e ferramentas de automação com Claude API e OpenAI.',
-          'Integração de LLMs com sistemas de hardware e pipelines de dados industriais.',
-        ],
-        current: false,
-      },
-    ],
-  },
-
+  stack: [
+    { id: 'REG[00]', label: 'Bare-Metal & RTOS', hint: 'interrupt-driven · deterministic · field-hardened', items: [
+      ['C++ / C',               95, 'ISR · DMA · bitfields'],
+      ['ESP32 + FreeRTOS',      90, 'preemptive · queues · semaphores'],
+      ['BLE 5.0 + ESP-NOW',     85, 'GAP/GATT · mesh flood · TTL routing'],
+      ['CAN FD + LTE cat-4',    80, 'ISO 11898 · AT cmds · SIM7600G'],
+      ['AES-256-GCM + HMAC',    78, 'flash encrypt · challenge-response'],
+    ]},
+    { id: 'REG[01]', label: 'Robotics Middleware', hint: 'ROS2 · real-time · sim-validated', items: [
+      ['ROS2 Humble (rclcpp)',   80, 'DDS QoS · lifecycle nodes'],
+      ['Docker + Compose',       75, 'isolated workspace · CI'],
+      ['Webots sim',             70, 'physics · sensor emulation'],
+      ['YOLOv8 + TF2',          65, 'inference · coord transforms'],
+      ['IK + Jacobian WBC',     62, 'biped gait · torque feedforward'],
+    ]},
+    { id: 'REG[02]', label: 'Data & Signal Analysis', hint: 'EDA · regression · RF instrumentation', items: [
+      ['Python',                 85, 'pipeline · parsing · scripting'],
+      ['Pandas + NumPy + SciPy', 80, 'EDA · time-series · FFT'],
+      ['Scikit-learn',           62, 'regression · k-fold · RMSE'],
+      ['MATLAB',                 65, 'control · bode · DSP'],
+      ['SA6 · 35-6200 MHz',      55, 'spectrum capture · pcap'],
+    ]},
+    { id: 'REG[03]', label: 'Web & AI Agents', hint: 'tool-calling · RAG · TypeScript strict', items: [
+      ['Claude API',             85, 'function tools · agent loops'],
+      ['TypeScript + React',     75, 'Zustand FSM · Framer Motion'],
+      ['OpenAI API',             72, 'LLM · embeddings · RAG'],
+      ['Vite + Tailwind',        70, 'build · code splitting'],
+    ]},
+  ],
+  missions: [
+    { id: 'M-001', perms: 'drwxr-x', status: 'ongoing', cat: 'Embedded',
+      title: 'Frotall FRITG01LTE — Industrial IoT Gateway',
+      role: 'Firmware R&D Engineer · Terasite Tecnologia',
+      summary: 'Edge device para telemetria de frota em máquinas pesadas. ESP32 + SIM7600G LTE, BLE 5.0 mesh (NimBLE), ISO 11898 CAN FD, AES-256-GCM, HMAC-SHA256. 30+ releases em produção.',
+      desc: 'FreeRTOS com 12 tasks priorizadas. CAN FD parsing para detecção de estado do motor via frame arbitration ID. Mesh BLE com flood routing (TTL=3) e fallback ESP-NOW. OTA com partição rollback e anti-rollback enforced. FFT de acelerômetro a 1 kHz para detecção de vibração. AES-256-GCM + HMAC-SHA256 challenge-response por sessão. Enclosure IP54, ISO 7637-2.',
+      chips: ['C++', 'ESP32', 'FreeRTOS', 'NimBLE', 'CAN FD', 'LTE cat-4', 'AES-256'],
+      side: [['heap_free','68% avg'],['fw_tasks','12 · tick=1kHz'],['ble_peers','ate 8 nos'],['releases','30+ campo']],
+      link: null },
+    { id: 'M-002', perms: 'drwxr-x', status: 'ongoing', cat: 'Robótica',
+      title: 'EDROM — Biped Humanoid · Robo Aurea',
+      role: 'President & Software Lead · EDROM / UFU',
+      summary: 'Robô humanoide bípede para RoboCup CBR 2025. IK analítica + Jacobian whole-body control, ROS2 Humble, sensor fusion 200 Hz, YOLOv8.',
+      desc: 'Locomoção via IK analítica + critério ZMP + Jacobian WBC para balanceamento dinâmico. Sensor fusion 200 Hz (IMU + encoders + FSR) com filtro Madgwick. Pipeline YOLOv8 (~14ms) com TF2 coordinate transforms. FSM para behavior autônomo. ROS2 rclcpp, DDS QoS policies, lifecycle nodes. Docker workspace + Webots para sim-to-real validation.',
+      chips: ['C++', 'ROS2', 'rclcpp', 'YOLOv8', 'Eigen', 'Docker', 'Webots'],
+      side: [['fusion_rate','200 Hz'],['dof','6 por perna · WBC'],['inference','YOLOv8 ~14ms'],['sim','Webots physics']],
+      link: 'https://github.com/edromufu/edrom_main' },
+    { id: 'M-003', perms: '-rw-r--', status: 'completed', cat: 'Embedded',
+      title: 'RF Antenna Validation Bench — Terasite',
+      role: 'Firmware R&D Engineer · Terasite',
+      summary: 'Bancada automatizada para qualificação de antenas do FRITG01LTE. State machine C++ com 3 perfis (BURN/WALK/CLOCK), scoring ponderado, Python pipeline -> HTML report.',
+      desc: 'State machine (C++ enum class): BURN (steady-state 72h), WALK (mobilidade), CLOCK (spatial mapping 5x5m). Janelas 15s: ICMP ping burst (3s) + TCP transfer (10s). Scoring: PLR*0.4 + RSSI_P10*0.33 + throughput*0.27. SA6 (35-6200 MHz) para raw spectrum. Pipeline Python parseia pcap + CSV, gera HTML com Plotly. Antena A53 -> score=100.',
+      chips: ['C++', 'Python', 'Plotly', 'pcap parsing', 'SA6 35-6200MHz'],
+      side: [['antenas','5 candidatas'],['perfis','BURN/WALK/CLOCK'],['scoring','PLR+RSSI+TP'],['winner','A53 score=100']],
+      link: 'https://github.com/guibertanha/estagio-terasite' },
+    { id: 'M-004', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+      title: 'RF Field Analysis — Wi-Fi Antenna EDA',
+      role: 'P&D · Terasite Tecnologia',
+      summary: 'Pipeline EDA para validação de antenas Wi-Fi em campo real. SA6 (35-6200 MHz) em Caterpillar excavators — vibração, EMI diesel, supply 12V/24V.',
+      desc: 'Dataset via SA6 em unidades FRITG01LTE instaladas em escavadeiras Caterpillar. EDA: distribuição RSSI (Gaussian fit), PLR vs. tempo, TCP throughput vs. distância. Matriz de correlação Pearson, análise espectral FFT, e ranking por composite score. Findings para seleção de fornecedor de antena.',
+      chips: ['Python', 'Pandas', 'SciPy', 'Plotly', 'SA6 35-6200MHz'],
+      side: [['instrument','SA6 35-6200MHz'],['conditions','EMI vib 12/24V'],['analysis','FFT Pearson PLR']],
+      link: 'https://github.com/guibertanha/rf-field-analysis' },
+    { id: 'M-005', perms: 'drwxr-x', status: 'ongoing', cat: 'Web',
+      title: 'firmware-e-poeira — Browser Simulation Game',
+      role: 'Projeto pessoal',
+      summary: 'Jogo de simulação browser sobre startup de hardware. React 19, Zustand FSM, Framer Motion layout animations, TypeScript strict mode.',
+      desc: 'Zustand com state machine explícita (slices por domínio). React 19 concurrent features, Suspense, use() hook. Framer Motion layout animations. TypeScript strict mode, discriminated unions para eventos. Vite com code splitting.',
+      chips: ['React 19', 'TypeScript strict', 'Zustand FSM', 'Framer Motion', 'Vite'],
+      side: [['state_mgmt','Zustand slices'],['animations','Framer layout'],['ts_mode','strict no-any']],
+      link: 'https://github.com/guibertanha/firmware-e-poeira' },
+    { id: 'M-006', perms: '-rw-r--', status: 'completed', cat: 'Dados',
+      title: 'Data Science Pipeline — Regression Study',
+      role: 'Estudo pessoal',
+      summary: 'Pipeline end-to-end: ingestão, limpeza, EDA, feature engineering e regressão com k-fold cross-validation e métricas RMSE/MAE/R².',
+      desc: 'Pipeline modular: ingestão -> limpeza (missing data imputation, outlier IQR) -> EDA (correlation matrix, pair plots) -> feature engineering (polynomial, StandardScaler) -> regressão (Linear, Ridge, RF) com k-fold k=5. Métricas RMSE/MAE/R². Residual plots para diagnóstico.',
+      chips: ['Python', 'Scikit-learn', 'Pandas', 'Seaborn', 'k-fold CV'],
+      side: [['models','Linear Ridge RF'],['validation','k-fold k=5'],['metrics','RMSE MAE R2']],
+      link: 'https://github.com/guibertanha/data-science-study' },
+  ],
+  log: [
+    { hash: 'a3f9c21', when: 'AGO 2024 -> HEAD', current: true,
+      role: 'President & Software Lead',
+      where: { b: 'EDROM', rest: ' · Equipe de Robótica da UFU' },
+      notes: [
+        'Biped IK solver: analytical IK + Jacobian WBC para dynamic balance (ZMP criterion).',
+        'ROS2 rclcpp: lifecycle node management, DDS QoS tuning, TF2 transform tree.',
+        'YOLOv8 inference pipeline (~14ms avg) + FSM para autonomous soccer behavior.',
+        'Sensor fusion 200Hz: filtro Madgwick sobre IMU + encoders + FSR.',
+        'Docker workspace + Webots sim-to-real validation pipeline.',
+      ] },
+    { hash: 'b7d2e44', when: 'MAR 2024 -> HEAD', current: true,
+      role: 'Firmware R&D Engineer',
+      where: { b: 'Terasite Tecnologia', rest: ' · Uberlândia · MG' },
+      notes: [
+        'FreeRTOS: 12 tasks priorizadas, semaphores, event groups, DMA-driven SPI/I2C.',
+        'NimBLE GATT server + mesh flood routing (TTL=3) + ESP-NOW fallback.',
+        'ISO 11898 CAN FD driver — motor state via frame arbitration ID parsing.',
+        'AES-256-GCM flash encryption + HMAC-SHA256 challenge-response por sessão.',
+        'OTA via BLE mesh: dual-partition rollback + anti-rollback enforcement.',
+        'RF bench: C++ state machine (BURN/WALK/CLOCK) + Python pcap parser + HTML report.',
+      ] },
+    { hash: 'c1a8f03', when: '2024 -> HEAD', current: false,
+      role: 'AI Agents Developer',
+      where: { b: 'Independent Projects', rest: '' },
+      notes: [
+        'Tool-calling agents via Claude API function tools + structured output.',
+        'LLM integration com hardware MQTT streams e industrial data pipelines.',
+        'RAG prototype para base de conhecimento industrial (pgvector + LangChain).',
+      ] },
+  ],
   contact: {
-    title: 'Contato',
-    id: '§ 05 / HANDSHAKE',
-    sub: 'Aberto a projetos de embedded systems, robótica, IA aplicada e consultoria técnica.',
     rows: [
-      { lab: 'Email',    val: 'guilhermebertanha0@gmail.com', href: 'mailto:guilhermebertanha0@gmail.com' },
-      { lab: 'GitHub',   val: 'github.com/guibertanha', href: 'https://github.com/guibertanha' },
-      { lab: 'LinkedIn', val: 'guilhermebertanhaconstante', href: 'https://linkedin.com/in/guilhermebertanhaconstante' },
-      { lab: 'Local',    val: 'Uberlândia · MG · Brasil', href: null },
+      { key: 'EMAIL',    val: 'guilhermebertanha0@gmail.com',     href: 'mailto:guilhermebertanha0@gmail.com', copy: true },
+      { key: 'GITHUB',   val: 'github.com/guibertanha',           href: 'https://github.com/guibertanha', copy: false },
+      { key: 'LINKEDIN', val: 'guilhermebertanhaconstante',        href: 'https://linkedin.com/in/guilhermebertanhaconstante', copy: false },
+      { key: 'LOCATION', val: 'Uberlândia · MG · BR · UTC-3',     href: null, copy: false },
     ],
   },
 };
@@ -663,9 +1137,9 @@ const CONTENT = {
 function Topbar({ active }) {
   const [time, setTime] = useState('');
   useEffect(() => {
+    const pad = (n) => String(n).padStart(2, '0');
     const tick = () => {
       const d = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
       setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} BRT`);
     };
     tick();
@@ -674,20 +1148,20 @@ function Topbar({ active }) {
   }, []);
 
   const links = [
-    ['about',      '01_sobre'],
-    ['skills',     '02_stack'],
-    ['projects',   '03_projetos'],
-    ['experience', '04_trajetoria'],
-    ['contact',    '05_contato'],
+    ['boot',       'INIT'],
+    ['about',      '/proc/gb'],
+    ['stack',      'reg_dump'],
+    ['projects',   'ls -missions'],
+    ['experience', 'git_log'],
+    ['contact',    'ping'],
   ];
 
   return (
     <div className="topbar">
-      <div className="topbar__left">
-        <div className="topbar__sig">
-          <span className="topbar__dot"></span>
-          <span>GB · v26.05</span>
-        </div>
+      <div className="topbar__prompt">
+        <span className="topbar__prompt-tag">[FRITG-CONSOLE]</span>
+        <span style={{color: 'var(--fg-faint)'}}>&gt;</span>
+        <span className="topbar__prompt-path">gb-portfolio · fw=3.15.0 · arch=xtensa-lx6</span>
         <span className="topbar__time">{time}</span>
       </div>
       <nav className="topbar__nav">
@@ -702,170 +1176,75 @@ function Topbar({ active }) {
 // ============================================================
 // SECTION HEAD
 // ============================================================
-function SectionHead({ title, id }) {
+function SectionHead({ cmd, label }) {
   return (
-    <div className="section__head">
-      <h2 className="section__title">{title}</h2>
-      <span className="section__id">{id}</span>
+    <div className="sec-head">
+      <span className="sec-head__caret">&gt;</span>
+      <span className="sec-head__cmd">{cmd}</span>
+      <span className="sec-head__rule"></span>
+      <h2 className="sec-head__label">{label}</h2>
     </div>
   );
 }
 
 // ============================================================
-// ESP32 DIAGRAM (animated)
+// BOOT SEQUENCE — versão acessível
 // ============================================================
-function ESP32Diagram() {
-  const [t, setT] = useState(0);
-  useEffect(() => {
-    let raf;
-    const loop = (now) => { setT(now / 1000); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+const BOOT_LINES = [
+  { text: 'I (42)    boot:    ESP32 chip · 2 CPU cores · WiFi/BT/BLE · silicon rev1', cls: 'dim' },
+  { text: 'I (58)    boot:    Secure Boot v2 · eFuse BLOCK_KEY0 burned', cls: 'dim' },
+  { text: 'I (61)    spi_flash: detected GD25Q128C · 16 MB · QIO 80 MHz', cls: 'dim' },
+  { text: 'I (78)    heap_init: DRAM 0x3ffb0000 · len 328704 (321 KiB)', cls: 'dim' },
+  { text: '', cls: '' },
+  { text: '[FRITG01LTE] fw=3.15.0 · target=esp32 · idf=v5.1.2 · 2026-03-19', cls: 'accent' },
+  { text: '', cls: '' },
+  { text: '[ OK ] nvs_flash_init         NVS partition "nvs" · 24 kB', cls: 'ok' },
+  { text: '[ OK ] nimble_init            BLE 5.0 stack · GAP/GATT server ready', cls: 'ok' },
+  { text: '[ OK ] esp_now_init           ESP-NOW · peer_list=0 · ttl=3', cls: 'ok' },
+  { text: '[ OK ] twai_driver_install    CAN FD · ISO 11898-1 · 250 kbps', cls: 'ok' },
+  { text: '[ OK ] sim7600_attach         LTE cat-4 · APN connected · RSSI=-67 dBm', cls: 'ok' },
+  { text: '[ OK ] aes256_gcm_init        flash encryption active · key_slot=0', cls: 'ok' },
+  { text: '[ OK ] hmac_sha256_init       challenge-response auth · token_ttl=300 s', cls: 'ok' },
+  { text: '[ OK ] ota_service_start      dual-partition rollback · anti-rollback=on', cls: 'ok' },
+  { text: '[WARN] nmea_gps_task          cold start · HDOP=99.9 · acquiring fix...', cls: 'warn' },
+  { text: '[ OK ] freertos_scheduler     12 tasks · tick=1 kHz · heap_free=68%', cls: 'ok' },
+  { text: '', cls: '' },
+  { text: '================================================================', cls: 'dim' },
+  { text: '  FRITG-CONSOLE :: Guilherme Bertanha · Uberlandia MG · UTC-3', cls: 'accent' },
+  { text: '  Eng. Mecatronica UFU · EDROM · Terasite Tecnologia', cls: 'dim' },
+  { text: '================================================================', cls: 'dim' },
+  { text: '', cls: '' },
+  { text: '> system_ready · type "help" for command list_', cls: '' },
+];
 
-  const bleAmp = Math.sin(t * 2.1) * 0.5 + 0.5;
-  const canAmp = Math.sin(t * 3.4 + 1) * 0.5 + 0.5;
-  const gpsAmp = Math.sin(t * 1.2 + 2) * 0.5 + 0.5;
-  const lteAmp = Math.sin(t * 1.8 + 0.5) * 0.5 + 0.5;
+function BootSequence({ onComplete }) {
+  const [count, setCount] = useState(0);
+  const done = count >= BOOT_LINES.length;
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    if (count >= BOOT_LINES.length) {
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onComplete && onComplete();
+      }
+      return;
+    }
+    const prevText = count > 0 ? BOOT_LINES[count - 1].text : '';
+    const initial = count === 0 ? 250 : 0;
+    const delay = initial || (prevText === '' ? 50 : (prevText.startsWith('  ✓') ? 95 : Math.random() * 40 + 25));
+    const id = setTimeout(() => setCount(c => c + 1), delay);
+    return () => clearTimeout(id);
+  }, [count]);
+
+  const lines = BOOT_LINES.slice(0, count);
 
   return (
-    <svg viewBox="0 0 200 220" style={{width:'100%', height:'100%', maxHeight: 280}} preserveAspectRatio="xMidYMid meet">
-      {/* Frame corners */}
-      <g stroke="var(--fg-faint)" strokeWidth="0.8" fill="none">
-        <path d="M10,10 L20,10 M10,10 L10,20"/>
-        <path d="M190,10 L180,10 M190,10 L190,20"/>
-        <path d="M10,210 L20,210 M10,210 L10,200"/>
-        <path d="M190,210 L180,210 M190,210 L190,200"/>
-      </g>
-      {/* Coord labels */}
-      <text x="14" y="216" fontFamily="var(--mono)" fontSize="5" fill="var(--fg-faint)" letterSpacing="0.1em">0,0</text>
-      <text x="178" y="216" fontFamily="var(--mono)" fontSize="5" fill="var(--fg-faint)" letterSpacing="0.1em">200,220</text>
-
-      {/* Board body */}
-      <rect x="60" y="40" width="80" height="120" fill="#0d0d0d" stroke="var(--line-strong)" strokeWidth="1" rx="1"/>
-      <rect x="60" y="40" width="80" height="120" fill="none" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2"/>
-
-      {/* Chip */}
-      <rect x="80" y="60" width="40" height="30" fill="var(--bg-elev)" stroke="var(--accent)" strokeWidth="0.8"/>
-      <rect x="83" y="63" width="34" height="24" fill="none" stroke="var(--line)" strokeWidth="0.4"/>
-      <text x="100" y="79" textAnchor="middle" fontFamily="var(--mono)" fontSize="6" fill="var(--accent)" letterSpacing="0.1em">ESP32</text>
-
-      {/* Pins left */}
-      {[0,1,2,3,4,5,6].map(i => (
-        <g key={`pl${i}`}>
-          <line x1="45" y1={55 + i*14} x2="60" y2={55 + i*14} stroke="var(--line-strong)" strokeWidth="1"/>
-          <circle cx="45" cy={55 + i*14} r="1.5" fill="var(--fg-faint)"/>
-        </g>
+    <div className="boot__console">
+      {lines.map((line, i) => (
+        <span key={i} className={`boot__line ${line?.cls || ''}`}>{line?.text || ' '}</span>
       ))}
-      {/* Pins right */}
-      {[0,1,2,3,4,5,6].map(i => (
-        <g key={`pr${i}`}>
-          <line x1="140" y1={55 + i*14} x2="155" y2={55 + i*14} stroke="var(--line-strong)" strokeWidth="1"/>
-          <circle cx="155" cy={55 + i*14} r="1.5" fill="var(--fg-faint)"/>
-        </g>
-      ))}
-
-      {/* BLE waves left */}
-      <g opacity={0.3 + bleAmp * 0.7} stroke="var(--info)" fill="none" strokeWidth="0.8">
-        <path d="M28,90 Q22,85 22,80 Q22,75 28,70"/>
-        <path d="M22,95 Q14,85 14,80 Q14,75 22,65"/>
-      </g>
-      <text x="17" y="105" fontFamily="var(--mono)" fontSize="6" fill="var(--info)" opacity="0.7" letterSpacing="0.08em">BLE</text>
-
-      {/* CAN dashed lines right */}
-      <g opacity={0.3 + canAmp * 0.7}>
-        <line x1="155" y1="75" x2="180" y2="75" stroke="var(--warn)" strokeWidth="0.8" strokeDasharray="2 1"/>
-        <line x1="155" y1="85" x2="180" y2="85" stroke="var(--warn)" strokeWidth="0.8" strokeDasharray="2 1"/>
-        <text x="166" y="100" fontFamily="var(--mono)" fontSize="6" fill="var(--warn)" opacity="0.85" letterSpacing="0.08em">CAN</text>
-      </g>
-
-      {/* GPS pulse */}
-      <circle cx="100" cy="135" r={2 + gpsAmp * 3} fill="none" stroke="var(--ok)" strokeWidth="0.6" opacity={0.4 + gpsAmp*0.4}/>
-      <circle cx="100" cy="135" r="2" fill="var(--ok)" opacity="0.95"/>
-      <text x="100" y="152" textAnchor="middle" fontFamily="var(--mono)" fontSize="6" fill="var(--ok)" letterSpacing="0.1em">GPS·FIX</text>
-
-      {/* LTE antenna top */}
-      <line x1="95" y1="40" x2="95" y2="25" stroke="var(--fg-dim)" strokeWidth="1"/>
-      <line x1="105" y1="40" x2="105" y2="25" stroke="var(--fg-dim)" strokeWidth="1"/>
-      <circle cx="95" cy="25" r={1 + lteAmp} fill="var(--accent)" opacity={0.4 + lteAmp*0.5}/>
-      <circle cx="105" cy="25" r={1 + (1-lteAmp)} fill="var(--accent)" opacity={0.4 + (1-lteAmp)*0.5}/>
-      <text x="100" y="20" textAnchor="middle" fontFamily="var(--mono)" fontSize="6" fill="var(--fg-faint)" letterSpacing="0.1em">LTE</text>
-
-      {/* Board label */}
-      <text x="100" y="178" textAnchor="middle" fontFamily="var(--mono)" fontSize="6" fill="var(--fg-faint)" letterSpacing="0.1em">FRITG01LTE · v3.15</text>
-    </svg>
-  );
-}
-
-// ============================================================
-// TELEMETRY PANEL
-// ============================================================
-function Telemetry() {
-  const [vals, setVals] = useState({ rssi: -67, ble: 3, can: 28 });
-  useEffect(() => {
-    const id = setInterval(() => {
-      setVals(v => ({
-        rssi: Math.max(-85, Math.min(-50, v.rssi + (Math.random()-0.5)*3)),
-        ble:  Math.max(1, Math.min(6, v.ble + (Math.random() > 0.75 ? (Math.random() > 0.5 ? 1 : -1) : 0))),
-        can:  Math.max(20, Math.min(40, v.can + (Math.random()-0.5)*2)),
-      }));
-    }, 1400);
-    return () => clearInterval(id);
-  }, []);
-
-  const feedItems = [
-    '[BLE] mesh_sync · 3 nós conectados',
-    '[CAN] frame_recv=28B · motor=LIGADO',
-    '[GPRS] signal=-67dBm · tower=OK',
-    '[OTA] fw_version=3.15.0 · up-to-date',
-    '[IMU] accel=0.12g · vibr=FFT_OK',
-    '[HMAC] auth_token=VALID · session=5m',
-    '[GPS] lat=-18.91 lon=-48.27 · fix=3D',
-    '[FreeRTOS] heap=68% · tasks=12 · OK',
-  ];
-
-  return (
-    <div className="telemetry">
-      <div className="telemetry__head">
-        <span>UNIT_GB-01 · FROTALL GATEWAY</span>
-        <span className="live">LIVE</span>
-      </div>
-      <div className="telemetry__viz">
-        <div className="telemetry__diagram"><ESP32Diagram /></div>
-        <div className="telemetry__readout">
-          <div className={`telemetry__readout-row ${vals.rssi > -70 ? 'is-ok' : 'is-warn'}`}>
-            <span>RSSI</span><b>{vals.rssi.toFixed(0)} dBm</b>
-          </div>
-          <div className="telemetry__readout-row is-ok">
-            <span>BLE_NODES</span><b>{vals.ble}</b>
-          </div>
-          <div className="telemetry__readout-row">
-            <span>CAN_FRAME</span><b>{vals.can.toFixed(0)}B</b>
-          </div>
-          <div className="telemetry__readout-row is-ok">
-            <span>FW_VER</span><b>3.15.0</b>
-          </div>
-          <div className="telemetry__readout-row">
-            <span>PROTO</span><b>BLE · ESP-NOW</b>
-          </div>
-          <div className="telemetry__readout-row">
-            <span>CRYPTO</span><b>AES-256</b>
-          </div>
-          <div className="telemetry__readout-row is-ok">
-            <span>STATUS</span><b>FIELD_OK</b>
-          </div>
-          <div className="telemetry__readout-row">
-            <span>MCU</span><b>ESP32 · LTE</b>
-          </div>
-        </div>
-      </div>
-      <div className="telemetry__feed">
-        <div className="telemetry__feed-track">
-          {[...feedItems, ...feedItems].map((s, i) => (
-            <span key={i}><b>›</b> {s}</span>
-          ))}
-        </div>
-      </div>
+      {!done && <span className="boot__cursor"></span>}
     </div>
   );
 }
@@ -874,43 +1253,36 @@ function Telemetry() {
 // HERO
 // ============================================================
 function Hero() {
-  const h = CONTENT.hero;
+  const [booted, setBooted] = useState(false);
   return (
-    <section id="home" className="hero" style={{borderBottom: 'none'}} data-screen-label="01 Hero">
-      <div className="hero__grid">
-        <div className="hero__left">
-          <div>
-            <div className="hero__greet">
-              <span className="hero__greet-dot"></span>
-              <span>{h.greet}</span>
+    <section id="boot" className="boot" data-screen-label="01 Início">
+      <BootSequence onComplete={() => setBooted(true)} />
+      <div className={`boot__hero ${booted ? 'is-visible' : ''}`}>
+        <h1 className="boot__name">
+          Guilherme<br/>
+          Bertanha<em><span className="boot__cursor-inline"></span></em>
+        </h1>
+        <p className="boot__role">
+          Engenheiro Mecatrônico em formação na UFU. <strong>Projeto a parte de dentro
+          de máquinas e robôs</strong> — o circuito, o programa que roda no chip,
+          e a inteligência que faz tudo funcionar junto. Lidero um time de robótica
+          humanoide na universidade e trabalho construindo aparelhos industriais.
+        </p>
+        <div className="boot__meta">
+          {[
+            ['ONDE',      'Uberlândia · MG'],
+            ['ESTADO',    'aberto a colaborações · 2026'],
+            ['TRABALHO',  'embarcado · robótica · IA'],
+          ].map(([l, v]) => (
+            <div key={l} className="boot__meta-cell">
+              <span className="boot__meta-label">{l}</span>
+              <span className="boot__meta-value">{v}</span>
             </div>
-            <h1 className="hero__name" style={{marginTop: 24}}>
-              Engenheiro<br/>
-              Mecatrônico &amp;<br/>
-              <em>desenvolvedor</em><br/>
-              de firmware.
-            </h1>
-            <p className="hero__role">{h.role}</p>
-            <div className="hero__cta">
-              <a className="btn btn--primary" href="#projects">
-                Ver projetos <span className="btn__arrow">→</span>
-              </a>
-              <a className="btn" href="#contact">
-                Contato <span className="btn__arrow">→</span>
-              </a>
-            </div>
-          </div>
-          <div className="hero__meta">
-            {h.meta.map(([lab, val]) => (
-              <div key={lab} className="hero__meta-cell">
-                <span className="hero__meta-label">{lab}</span>
-                <span className="hero__meta-value">{val}</span>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
-        <div className="hero__right">
-          <Telemetry />
+        <div className="boot__cta">
+          <a className="btn btn--primary" href="#projects">ver projetos <span className="arr">→</span></a>
+          <a className="btn" href="#contact">falar comigo <span className="arr">→</span></a>
         </div>
       </div>
     </section>
@@ -923,19 +1295,29 @@ function Hero() {
 function About() {
   const a = CONTENT.about;
   return (
-    <section id="about" data-screen-label="02 About">
-      <SectionHead title={a.title} id={a.id} />
-      <div className="about">
-        <div className="about__bio">
-          {a.bio.map((p, i) => (
-            <p key={i} className={i === 0 ? '' : 'is-dim'}>{p}</p>
+    <section id="about" data-screen-label="02 Sobre">
+      <SectionHead cmd="cat /proc/gb/operator.profile" label="Sobre" />
+      <div className="profile-dump">
+        <div className="profile-dump__header">cat /proc/gb/operator.profile</div>
+        <div className="profile-dump__body">
+          {a.profile.map(([k, v]) => (
+            <div key={k} className="profile-dump__row">
+              <span className="profile-dump__key">{k}</span>
+              <span className="profile-dump__val">{v}</span>
+            </div>
           ))}
         </div>
-        <div className="about__stats">
-          {a.stats.map(([v, l]) => (
-            <div key={l} className="stat">
-              <div className="stat__value">{v}</div>
-              <div className="stat__label">{l}</div>
+      </div>
+
+      <div className="bio-grid">
+        <div className="bio-text">
+          {a.bio.map((p, i) => <p key={i}>{p}</p>)}
+        </div>
+        <div className="counters">
+          {a.counters.map(([v, l]) => (
+            <div key={l} className="counter">
+              <div className="counter__val">{v}</div>
+              <div className="counter__label">{l}</div>
             </div>
           ))}
         </div>
@@ -945,28 +1327,34 @@ function About() {
 }
 
 // ============================================================
-// SKILLS
+// STACK
 // ============================================================
-function Skills() {
-  const s = CONTENT.skills;
+function Stack() {
   return (
-    <section id="skills" data-screen-label="03 Skills">
-      <SectionHead title={s.title} id={s.id} />
-      <div className="skills__grid">
-        {s.groups.map((g) => (
-          <div key={g.ix} className="skills__cell">
-            <div className="skills__cell-head">
-              <span className="ix">{g.ix}</span>
-              <span>{g.label}</span>
+    <section id="stack" data-screen-label="03 O que sei fazer">
+      <SectionHead cmd="readelf --STACK_REGISTER" label="O que sei fazer" />
+      <div className="stack-section">
+        {CONTENT.stack.map((reg) => (
+          <div key={reg.id} className="stack-reg">
+            <div className="stack-reg__head">
+              <span className="reg-id">{reg.id}</span>
+              <span>{reg.label}</span>
+              <span className="reg-count">— {reg.hint}</span>
             </div>
-            <ul className="skills__list">
-              {g.items.map(([name, tag]) => (
-                <li key={name}>
-                  <b style={{fontWeight: 500}}>{name}</b>
-                  <span>{tag}</span>
-                </li>
+            <div className="stack-reg__items">
+              {reg.items.map(([name, pct, tag], i) => (
+                <div key={name} className="stack-item">
+                  <div className="stack-item__name">{name}</div>
+                  <div className="stack-item__bar">
+                    <div
+                      className="stack-item__fill"
+                      style={{ '--pct': `${pct}%`, animationDelay: `${i * 60}ms` }}
+                    ></div>
+                  </div>
+                  <div className="stack-item__tag">{tag}</div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
       </div>
@@ -975,177 +1363,81 @@ function Skills() {
 }
 
 // ============================================================
-// PROJECT ART PLACEHOLDERS
+// MISSIONS / PROJECTS
 // ============================================================
-function ProjectArt({ kind }) {
-  if (kind === 'board') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'78%', height:'78%'}} preserveAspectRatio="xMidYMid meet">
-        <rect x="60" y="20" width="80" height="80" fill="#0d0d0d" stroke="var(--accent)" strokeWidth="1"/>
-        <rect x="80" y="40" width="40" height="40" fill="var(--bg-elev)" stroke="var(--accent)" strokeWidth="0.8"/>
-        <text x="100" y="63" textAnchor="middle" fontFamily="var(--mono)" fontSize="7" fill="var(--accent)" letterSpacing="0.1em">ESP32</text>
-        {[0,1,2,3,4].map(i => <line key={`l${i}`} x1="45" y1={30+i*15} x2="60" y2={30+i*15} stroke="var(--line-strong)" strokeWidth="1"/>)}
-        {[0,1,2,3,4].map(i => <line key={`r${i}`} x1="140" y1={30+i*15} x2="155" y2={30+i*15} stroke="var(--line-strong)" strokeWidth="1"/>)}
-        <line x1="95" y1="20" x2="95" y2="10" stroke="var(--fg-dim)" strokeWidth="1"/>
-        <line x1="105" y1="20" x2="105" y2="10" stroke="var(--fg-dim)" strokeWidth="1"/>
-      </svg>
-    );
-  }
-  if (kind === 'robot') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'70%', height:'80%'}} preserveAspectRatio="xMidYMid meet">
-        <circle cx="100" cy="30" r="14" fill="none" stroke="var(--accent)" strokeWidth="1.5"/>
-        <circle cx="95" cy="28" r="1.5" fill="var(--accent)"/>
-        <circle cx="105" cy="28" r="1.5" fill="var(--accent)"/>
-        <rect x="84" y="46" width="32" height="34" fill="none" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="84" y1="55" x2="74" y2="70" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="74" y1="70" x2="74" y2="88" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="116" y1="55" x2="126" y2="70" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="126" y1="70" x2="126" y2="88" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="92" y1="80" x2="92" y2="100" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="108" y1="80" x2="108" y2="100" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="92" y1="100" x2="88" y2="106" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="108" y1="100" x2="112" y2="106" stroke="var(--accent)" strokeWidth="1.2"/>
-        <text x="100" y="55" textAnchor="middle" fontFamily="var(--mono)" fontSize="5" fill="var(--accent)" letterSpacing="0.1em">ÁUREA</text>
-      </svg>
-    );
-  }
-  if (kind === 'antenna') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'80%', height:'78%'}} preserveAspectRatio="xMidYMid meet">
-        {[0,1,2,3,4].map(i => {
-          const x = 30 + i*35;
-          return (
-            <g key={i}>
-              <line x1={x} y1="90" x2={x} y2="40" stroke="var(--accent)" strokeWidth="1.5"/>
-              <line x1={x-6} y1="40" x2={x+6} y2="40" stroke="var(--accent)" strokeWidth="1.5"/>
-              <line x1={x-4} y1="46" x2={x+4} y2="46" stroke="var(--accent)" strokeWidth="1"/>
-              <circle cx={x} cy="92" r="3" fill="var(--bg)" stroke="var(--accent)" strokeWidth="1"/>
-              <text x={x} y="106" textAnchor="middle" fontFamily="var(--mono)" fontSize="5" fill="var(--fg-faint)">A{i+1}</text>
-            </g>
-          );
-        })}
-      </svg>
-    );
-  }
-  if (kind === 'chart') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'82%', height:'80%'}} preserveAspectRatio="xMidYMid meet">
-        <line x1="20" y1="100" x2="180" y2="100" stroke="var(--line-strong)" strokeWidth="1"/>
-        <line x1="20" y1="20" x2="20" y2="100" stroke="var(--line-strong)" strokeWidth="1"/>
-        <polyline fill="none" stroke="var(--accent)" strokeWidth="1.5"
-          points="20,80 35,70 50,75 65,55 80,60 95,40 110,50 125,30 140,42 155,25 170,32 180,28"/>
-        {[28,42,25,32].map((y, i) => <circle key={i} cx={125 + i*15} cy={y + 18} r="2" fill="var(--accent)"/>)}
-        <text x="100" y="115" textAnchor="middle" fontFamily="var(--mono)" fontSize="5" fill="var(--fg-faint)" letterSpacing="0.1em">RSSI · TIME</text>
-      </svg>
-    );
-  }
-  if (kind === 'web') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'82%', height:'80%'}} preserveAspectRatio="xMidYMid meet">
-        <rect x="30" y="20" width="140" height="80" fill="none" stroke="var(--accent)" strokeWidth="1.2"/>
-        <line x1="30" y1="34" x2="170" y2="34" stroke="var(--accent)" strokeWidth="1"/>
-        <circle cx="40" cy="27" r="2" fill="var(--warn)"/>
-        <circle cx="48" cy="27" r="2" fill="var(--ok)"/>
-        <circle cx="56" cy="27" r="2" fill="var(--info)"/>
-        <rect x="40" y="44" width="50" height="6" fill="var(--accent)" opacity="0.4"/>
-        <rect x="40" y="56" width="80" height="6" fill="var(--fg-dim)" opacity="0.4"/>
-        <rect x="40" y="68" width="60" height="6" fill="var(--fg-dim)" opacity="0.3"/>
-        <rect x="40" y="80" width="40" height="14" fill="var(--accent)"/>
-      </svg>
-    );
-  }
-  if (kind === 'lab') {
-    return (
-      <svg viewBox="0 0 200 120" className="proj__image-art" style={{width:'78%', height:'80%'}} preserveAspectRatio="xMidYMid meet">
-        <g stroke="var(--line-strong)" strokeWidth="0.6">
-          {[0,1,2,3,4,5].map(i => <line key={i} x1="20" y1={25+i*14} x2="180" y2={25+i*14}/>)}
-          {[0,1,2,3,4,5,6,7].map(i => <line key={i} x1={30+i*20} y1="25" x2={30+i*20} y2="95"/>)}
-        </g>
-        {[[40,55],[60,40],[80,65],[100,38],[120,55],[140,45],[160,50]].map(([x,y], i) => (
-          <circle key={i} cx={x} cy={y} r="3" fill="var(--accent)"/>
-        ))}
-        <polyline fill="none" stroke="var(--accent)" strokeWidth="1" strokeDasharray="3 2"
-          points="40,52 60,48 80,55 100,42 120,50 140,48 160,50"/>
-        <text x="100" y="110" textAnchor="middle" fontFamily="var(--mono)" fontSize="5" fill="var(--fg-faint)" letterSpacing="0.1em">REGRESSION · R²=0.87</text>
-      </svg>
-    );
-  }
-  return null;
-}
-
-// ============================================================
-// PROJECTS
-// ============================================================
-function Projects() {
-  const p = CONTENT.projects;
+function Missions() {
   const [filter, setFilter] = useState('Todos');
-  const visibleRef = useRef(new Set());
-  const cardsRef = useRef({});
+  const [openId, setOpenId] = useState('M-001');
+  const filters = ['Todos', 'Embedded', 'Robótica', 'Dados', 'Web'];
 
-  const filtered = useMemo(() => {
-    return filter === 'Todos' ? p.items : p.items.filter(it => it.cat === filter);
-  }, [filter]);
-
-  // IntersectionObserver for reveal
-  useEffect(() => {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-visible');
-          obs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.1 });
-    Object.values(cardsRef.current).forEach(el => { if (el) obs.observe(el); });
-    return () => obs.disconnect();
+  const items = useMemo(() => {
+    if (filter === 'Todos') return CONTENT.missions;
+    return CONTENT.missions.filter(m => m.cat === filter);
   }, [filter]);
 
   return (
-    <section id="projects" data-screen-label="04 Projects">
-      <SectionHead title={p.title} id={p.id} />
-      <div className="proj__filters">
-        {p.filters.map(f => (
+    <section id="projects" data-screen-label="04 Projetos">
+      <SectionHead cmd="ls -la ./missions/" label="Projetos" />
+      <div className="mission-filters">
+        {filters.map(f => (
           <button
             key={f}
-            className={`proj__filter ${filter === f ? 'is-active' : ''}`}
+            className={`mission-filter ${filter === f ? 'is-active' : ''}`}
             onClick={() => setFilter(f)}
           >
             {f}
           </button>
         ))}
       </div>
-      <div className="proj__grid">
-        {filtered.map((it, i) => {
-          const Wrapper = it.link ? 'a' : 'div';
-          const wrapperProps = it.link ? { href: it.link, target: '_blank', rel: 'noopener' } : {};
+      <div className="missions__hint">
+        <b>{items.length} projeto{items.length !== 1 ? 's' : ''}</b> · clique em qualquer linha pra ver os detalhes
+      </div>
+      <div className="missions">
+        {items.map((m) => {
+          const isOpen = openId === m.id;
           return (
-            <Wrapper
-              key={it.id}
-              className="proj__card"
-              ref={el => { cardsRef.current[it.id] = el; }}
-              {...wrapperProps}
-            >
-              <div className="proj__card-head">
-                <span className="proj__id">{it.id}</span>
-                <span className={`proj__status is-${it.status}`}>
-                  {it.status === 'ongoing' ? 'ATIVO' : 'ENTREGUE'}
+            <div key={m.id} className={`mission ${isOpen ? 'is-open' : ''}`}>
+              <div className="mission__trigger" onClick={() => setOpenId(isOpen ? null : m.id)}>
+                <span className="mission__perms">{m.perms}</span>
+                <span className="mission__id">[{m.id}]</span>
+                <div className="mission__main">
+                  <span className="mission__title">{m.title}</span>
+                </div>
+                <span className={`mission__status ${m.status === 'ongoing' ? 'warn' : 'ok'}`}>
+                  {m.status === 'ongoing' ? 'EM ANDAMENTO' : 'CONCLUÍDO'}
                 </span>
+                <span className="mission__caret">▸</span>
               </div>
-              <div className="proj__image">
-                <div className="proj__image-grid"></div>
-                <ProjectArt kind={it.art} />
-                <span className="proj__image-tag">{it.tag}</span>
-              </div>
-              <div className="proj__body">
-                <div className="proj__role">{it.role}</div>
-                <h3 className="proj__title">{it.title}</h3>
-                <p className="proj__desc">{it.desc}</p>
-                <div className="proj__chips">
-                  {it.chips.map(c => <span key={c} className="chip">{c}</span>)}
+              <div className="mission__expand">
+                <div className="mission__detail">
+                  <div>
+                    <div className="mission__detail-text">
+                      <span className="mission__detail-role">{m.role}</span>
+                      <div style={{marginBottom: 12, color: 'var(--fg)'}}>{m.summary}</div>
+                      <div style={{fontSize: 13, color: 'var(--fg-dim)'}}>{m.desc}</div>
+                      <div className="mission__chips">
+                        {m.chips.map(c => <span key={c} className="chip">{c}</span>)}
+                      </div>
+                      {m.link && (
+                        <div>
+                          <a className="mission__link" href={m.link} target="_blank" rel="noopener">
+                            ver no GitHub <span>→</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <dl className="mission__detail-side">
+                    {m.side.map(([k, v]) => (
+                      <React.Fragment key={k}>
+                        <dt>{k}</dt>
+                        <dd>{v}</dd>
+                      </React.Fragment>
+                    ))}
+                  </dl>
                 </div>
               </div>
-            </Wrapper>
+            </div>
           );
         })}
       </div>
@@ -1157,27 +1449,32 @@ function Projects() {
 // EXPERIENCE
 // ============================================================
 function Experience() {
-  const x = CONTENT.experience;
+  const items = CONTENT.log;
   return (
-    <section id="experience" data-screen-label="05 Experience">
-      <SectionHead title={x.title} id={x.id} />
-      <div className="xp__list">
-        {x.items.map((it, i) => (
-          <div key={i} className={`xp__entry ${it.current ? 'is-current' : ''}`}>
-            <div className="xp__row">
-              <div className="xp__when">
-                <b>{it.dur}</b>
-                {it.when}
+    <section id="experience" data-screen-label="05 Trajetória">
+      <SectionHead cmd="git log --author=GB --stat" label="Trajetória" />
+      <div className="gitlog__head">
+        <b>{items.length} commits</b> · git log --author=GB
+      </div>
+      <div className="gitlog">
+        {items.map((it) => (
+          <div key={it.hash} className="gitlog__entry">
+            <div className="gitlog__gutter">
+              <div className={`gitlog__dot ${it.current ? 'is-current' : ''}`}></div>
+              <div className="gitlog__line"></div>
+            </div>
+            <div className="gitlog__content">
+              <div className="gitlog__meta">
+                <span className="gitlog__when">{it.when}</span>
+                {it.current && <span style={{color: 'var(--ok)'}}>(atual)</span>}
               </div>
-              <div className="xp__body">
-                <h3 className="xp__role">{it.role}</h3>
-                <div className="xp__where">
-                  {it.where.pre}<b>{it.where.strong}</b>{it.where.post}
-                </div>
-                <ul className="xp__notes">
-                  {it.notes.map((n, j) => <li key={j}>{n}</li>)}
-                </ul>
+              <div className="gitlog__subject">{it.role}</div>
+              <div className="gitlog__where">
+                <b>{it.where.b}</b>{it.where.rest}
               </div>
+              <ul className="gitlog__notes">
+                {it.notes.map((n, i) => <li key={i}>{n}</li>)}
+              </ul>
             </div>
           </div>
         ))}
@@ -1189,34 +1486,274 @@ function Experience() {
 // ============================================================
 // CONTACT
 // ============================================================
-function Contact() {
-  const c = CONTENT.contact;
+function PingRow({ row }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(row.val).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      });
+    }
+  }, [row.val]);
+
   return (
-    <section id="contact" className="contact" data-screen-label="06 Contact">
-      <SectionHead title={c.title} id={c.id} />
-      <div className="contact__grid">
-        <div>
-          <h2 className="contact__lead">
-            Vamos <em>construir</em> algo.
-          </h2>
-          <p className="contact__sub">{c.sub}</p>
+    <div className="ping-row">
+      <span className="ping-row__key">{row.key}</span>
+      <span className="ping-row__val">
+        {row.href ? <a href={row.href} target={row.href.startsWith('http') ? '_blank' : undefined} rel="noopener">{row.val}</a> : row.val}
+      </span>
+      {row.copy && (
+        <button className={`ping-row__action ${copied ? 'is-copied' : ''}`} onClick={handleCopy}>
+          {copied ? 'copied ✓' : 'copy'}
+        </button>
+      )}
+      {!row.copy && row.href && (
+        <a className="ping-row__action" href={row.href} target={row.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+          abrir →
+        </a>
+      )}
+      {!row.copy && !row.href && (
+        <span className="ping-row__action" style={{borderColor: 'var(--line-strong)', color: 'var(--fg-faint)', cursor: 'default'}}>—</span>
+      )}
+    </div>
+  );
+}
+
+function Contact() {
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setSent(true);
+      e.target.reset();
+      setTimeout(() => setSent(false), 4000);
+    }, 700);
+  };
+
+  return (
+    <section id="contact" data-screen-label="06 Contato">
+      <SectionHead cmd="ping guilherme.bertanha -c 3" label="Contato" />
+      <div className="ping-section">
+        <div className="ping-output">
+          <div className="ping-output__bar">canais diretos</div>
+          <div className="ping-output__body">
+            <div className="ping-output__intro" style={{fontFamily: 'var(--mono)'}}>
+              <span style={{color: 'var(--fg)'}}>procurando Guilherme...</span><br/>
+              <b>encontrado ✓</b> — geralmente respondo em até 48h<br/>
+              <span style={{color: 'var(--fg-faint)'}}>─── escolha um canal abaixo ───</span>
+            </div>
+            {CONTENT.contact.rows.map((row) => <PingRow key={row.key} row={row} />)}
+          </div>
         </div>
-        <div className="contact__cta">
-          {c.rows.map((row, i) => {
-            const Wrapper = row.href ? 'a' : 'div';
-            const wrapperProps = row.href ? { href: row.href, target: row.href.startsWith('http') ? '_blank' : undefined, rel: 'noopener' } : {};
-            return (
-              <Wrapper key={i} className="contact__row" {...wrapperProps}>
-                <span className="lab">{row.lab}</span>
-                <span style={{display:'flex', alignItems:'center', gap:10}}>
-                  {row.val} {row.href && <span className="arr">→</span>}
-                </span>
-              </Wrapper>
-            );
-          })}
-        </div>
+
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <div className="contact-form__header">
+            <b>$</b> send --message
+          </div>
+          <label>
+            seu nome
+            <input type="text" name="name" required placeholder="ex: Maria da Silva"/>
+          </label>
+          <label>
+            seu e-mail
+            <input type="email" name="email" required placeholder="voce@email.com"/>
+          </label>
+          <label>
+            mensagem
+            <textarea name="message" required placeholder="o que você está construindo? como posso ajudar?"></textarea>
+          </label>
+          <button type="submit" className="contact-form__submit" disabled={sending}>
+            {sending ? 'transmitting...' : 'send --payload →'}
+          </button>
+          {sent && (
+            <div className="contact-form__status">
+              ✓ mensagem enviada · respondo em até 48h
+            </div>
+          )}
+          <div className="contact-form__hint">
+            ou copie meu email no card ao lado e me escreva direto
+          </div>
+        </form>
       </div>
     </section>
+  );
+}
+
+// ============================================================
+// FLOATING TERMINAL
+// ============================================================
+const HELP_TEXT = [
+  { cls: 'info', text: 'comandos disponíveis:' },
+  { cls: '', text: '  ajuda       → mostra esta mensagem' },
+  { cls: '', text: '  sobre       → rola até a seção Sobre' },
+  { cls: '', text: '  sei         → rola até "O que sei fazer"' },
+  { cls: '', text: '  projetos    → rola até Projetos' },
+  { cls: '', text: '  trajetoria  → rola até Trajetória' },
+  { cls: '', text: '  contato     → rola até Contato' },
+  { cls: '', text: '  github      → abre meu GitHub' },
+  { cls: '', text: '  linkedin    → abre meu LinkedIn' },
+  { cls: '', text: '  email       → abre seu app de e-mail' },
+  { cls: '', text: '  quem        → diz quem eu sou' },
+  { cls: '', text: '  hora        → mostra a hora aqui' },
+  { cls: '', text: '  limpar      → limpa o histórico' },
+];
+
+function FloatingTerminal() {
+  const [open, setOpen] = useState(false);
+  const [history, setHistory] = useState([
+    { cls: 'ok', text: '[FRITG-CONSOLE] terminal aberto · pode digitar' },
+    { cls: 'info', text: 'digite "ajuda" pra ver os comandos' },
+  ]);
+  const [input, setInput] = useState('');
+  const [cmdHist, setCmdHist] = useState([]);
+  const [histIdx, setHistIdx] = useState(-1);
+  const inputRef = useRef(null);
+  const historyRef = useRef(null);
+
+  useEffect(() => {
+    if (open && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }
+  }, [history]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === '`' && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        setOpen(v => !v);
+      }
+      if (e.key === 'Escape' && open) setOpen(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open]);
+
+  const append = (lines) => setHistory(h => [...h, ...lines]);
+
+  const runCmd = (raw) => {
+    const cmd = raw.trim().toLowerCase();
+    if (!cmd) return;
+    append([{ cls: 'user', text: `gb ~ $ ${raw}` }]);
+    setCmdHist(h => [raw, ...h]);
+    setHistIdx(-1);
+
+    const scrollTo = (id, label) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top, behavior: 'smooth' });
+        append([{cls:'ok', text:`→ levando você até ${label}`}]);
+      } else {
+        append([{cls:'err', text:`não encontrei: ${id}`}]);
+      }
+    };
+
+    switch (cmd) {
+      case 'ajuda': case 'help': case '?':
+        append(HELP_TEXT); break;
+      case 'limpar': case 'clear': case 'cls':
+        setHistory([]); break;
+      case 'quem': case 'whoami':
+        append([{cls:'info', text:'Guilherme Bertanha · engenheiro mecatrônico · Uberlândia MG'}]);
+        break;
+      case 'hora': case 'date':
+        append([{cls:'info', text: new Date().toLocaleString('pt-BR', {dateStyle: 'full', timeStyle: 'medium'})}]);
+        break;
+      case 'sobre': case 'about':
+        scrollTo('about', 'Sobre'); break;
+      case 'sei': case 'stack': case 'skills':
+        scrollTo('stack', 'O que sei fazer'); break;
+      case 'projetos': case 'projects':
+        scrollTo('projects', 'Projetos'); break;
+      case 'trajetoria': case 'trajetória': case 'log': case 'experience':
+        scrollTo('experience', 'Trajetória'); break;
+      case 'contato': case 'contact':
+        scrollTo('contact', 'Contato'); break;
+      case 'github': case 'gh':
+        window.open(CONTENT.meta.github, '_blank');
+        append([{cls:'ok', text:'→ abrindo GitHub em nova aba'}]); break;
+      case 'linkedin': case 'li':
+        window.open(CONTENT.meta.linkedin, '_blank');
+        append([{cls:'ok', text:'→ abrindo LinkedIn em nova aba'}]); break;
+      case 'email': case 'mail': case 'e-mail':
+        window.location.href = `mailto:${CONTENT.meta.email}`;
+        append([{cls:'ok', text:`→ abrindo seu app de e-mail`}]); break;
+      case 'sair': case 'fechar': case 'exit': case 'quit':
+        append([{cls:'info', text:'fechando...'}]);
+        setTimeout(() => setOpen(false), 300); break;
+      case 'oi': case 'olá': case 'ola':
+        append([{cls:'info', text:'oi! obrigado por explorar 🙂 digite "ajuda" pra ver o que dá pra fazer aqui.'}]);
+        break;
+      case 'obrigado': case 'obrigada': case 'valeu':
+        append([{cls:'info', text:'imagina, fico feliz que tenha gostado.'}]); break;
+      default:
+        append([{cls:'err', text:`não entendi: "${cmd}" — digite "ajuda" pra ver os comandos`}]);
+    }
+  };
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    runCmd(input);
+    setInput('');
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const next = Math.min(cmdHist.length - 1, histIdx + 1);
+      if (next >= 0 && cmdHist[next]) { setInput(cmdHist[next]); setHistIdx(next); }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = histIdx - 1;
+      if (next < 0) { setInput(''); setHistIdx(-1); }
+      else { setInput(cmdHist[next]); setHistIdx(next); }
+    }
+  };
+
+  return (
+    <>
+      <button className="terminal-btn" onClick={() => setOpen(v => !v)} aria-label="Abrir terminal" title="atalhos por digitar ` ou clicar">
+        &gt;_
+      </button>
+      <div className={`terminal-float ${open ? 'is-open' : ''}`}>
+        <div className="terminal-float__bar">
+          <span>FRITG-CONSOLE · /dev/tty0</span>
+          <button className="terminal-float__close" onClick={() => setOpen(false)} aria-label="Fechar">✕</button>
+        </div>
+        <div className="terminal-float__history" ref={historyRef}>
+          {history.map((line, i) => (
+            <div key={i} className={`terminal-float__line ${line.cls}`}>{line.text}</div>
+          ))}
+        </div>
+        <form className="terminal-float__input-row" onSubmit={onSubmit}>
+          <span className="terminal-float__prompt-sym">&gt;</span>
+          <input
+            ref={inputRef}
+            type="text"
+            className="terminal-float__input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder='ex: "ajuda" · "projetos" · "github"'
+            autoComplete="off"
+            spellCheck="false"
+          />
+        </form>
+      </div>
+    </>
   );
 }
 
@@ -1226,20 +1763,22 @@ function Contact() {
 function Footer() {
   return (
     <footer className="footer">
-      <span>© 2026 Guilherme Bertanha · Uberlândia · MG</span>
-      <span>SYS:OK · GB-portfolio.v26 <span className="footer__cursor">█</span></span>
+      <span>© 2026 Guilherme Bertanha · Uberlândia MG · UTC-3</span>
+      <span className="footer__sig">
+        <b>FRITG-CONSOLE</b> · fw=3.15.0 · uptime: ∞
+      </span>
     </footer>
   );
 }
 
 // ============================================================
-// SCROLLSPY
+// SCROLL SPY
 // ============================================================
 function useScrollSpy(ids) {
   const [active, setActive] = useState(ids[0]);
   useEffect(() => {
     const handler = () => {
-      const y = window.scrollY + 140;
+      const y = window.scrollY + 160;
       let cur = ids[0];
       for (const id of ids) {
         const el = document.getElementById(id);
@@ -1258,19 +1797,20 @@ function useScrollSpy(ids) {
 // APP
 // ============================================================
 function App() {
-  const active = useScrollSpy(['home', 'about', 'skills', 'projects', 'experience', 'contact']);
+  const active = useScrollSpy(['boot', 'about', 'stack', 'projects', 'experience', 'contact']);
   return (
     <>
       <Topbar active={active} />
-      <div className="app">
+      <div className="page">
         <Hero />
         <About />
-        <Skills />
-        <Projects />
+        <Stack />
+        <Missions />
         <Experience />
         <Contact />
         <Footer />
       </div>
+      <FloatingTerminal />
     </>
   );
 }
@@ -1278,6 +1818,6 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-</script>
+  </script>
 </body>
 </html>
